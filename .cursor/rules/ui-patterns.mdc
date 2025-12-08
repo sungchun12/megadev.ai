@@ -1,0 +1,83 @@
+---
+description: Blueprint UI patterns and design system for megadev.ai
+globs: ["src/components/**", "src/styles/**", "*.css", "*.tsx", "*.ts"]
+---
+
+# Blueprint UI Patterns
+
+## Color System (Always Use CSS Variables)
+
+```css
+:root {
+  /* Primary Blues */
+  --color-bg-primary: #0047AB;      /* Cobalt blue - main background */
+  --color-bg-deep: #001F54;         /* Navy - shadows */
+  --color-bg-surface: #0052CC;      /* Lighter blue - panels */
+  
+  /* Grid & Lines */
+  --color-grid: rgba(255, 255, 255, 0.08);
+  --color-grid-major: rgba(255, 255, 255, 0.15);
+  --color-line-annotation: rgba(255, 255, 255, 0.4);
+  
+  /* Text */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-text-annotation: #00D4FF;
+  
+  /* Accents */
+  --color-accent-glow: #00D4FF;
+}
+```
+
+## Typography
+
+| Role | Font | Fallback |
+|------|------|----------|
+| Display | Playfair Display | Georgia, serif |
+| Body | IBM Plex Sans | system-ui, sans-serif |
+| Code/Technical | JetBrains Mono, IBM Plex Mono | monospace |
+| Blueprint Labels | Archivo Narrow | sans-serif |
+
+## Grid Background Pattern
+
+Always use CSS gradients for the blueprint grid (performant):
+
+```css
+.blueprint-bg {
+  background-color: var(--color-bg-primary);
+  background-image: 
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px),
+    linear-gradient(var(--color-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-major) 1px, transparent 1px);
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+}
+```
+
+## Layout Rules
+
+- **Single viewport**: `height: 100vh`, `overflow: hidden` on desktop
+- **No scrolling** on desktop (≥1024px)
+- Allow scroll on mobile (<1024px) if content overflows
+- Character artwork is the hero element, centered or offset with annotation
+
+## Component Patterns
+
+### Blueprint Annotations
+```tsx
+<div className="annotation">
+  <span className="annotation-title">TOOL NAME</span>
+  <p className="annotation-desc">Description here</p>
+</div>
+```
+
+Annotation styling:
+- Font: monospace
+- Color: `var(--color-text-annotation)`
+- Left border: 2px solid with annotation line color
+- Uppercase title with letter-spacing
+
+## File References
+
+- Full specification: `agents/blueprint-ui.agent.md`
+- Design inspiration: `images/blueprint_example.png`

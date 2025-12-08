@@ -1,0 +1,65 @@
+---
+description: General project context for megadev.ai website
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# megadev.ai Project Context
+
+## Vision
+
+Building a personal career persona website that represents the "megadev" identity - someone who leverages hyper-leverage tools and skills in the age of guilds. Tools best used by the creator, available to all.
+
+## Tech Stack
+
+- **Framework**: Vite + React + TypeScript
+- **Styling**: CSS with CSS variables (no Tailwind unless added)
+- **Deployment**: Static export to Hostinger
+- **No backend**: Pure frontend, static files only
+
+## Design Aesthetic
+
+- **Theme**: Blueprint/technical schematic
+- **Background**: Cobalt blue `#0047AB`
+- **Accent**: Cyan glow `#00D4FF`
+- **Character**: Modified Zero from Mega Man (blue, no hair)
+- **Layout**: Single viewport, no scrolling
+
+## Key Interactive Element
+
+The **whip** weapon represents the [claiw](https://github.com/sungchun12/claiw) CLI AI tool:
+- Hover: Cyan glow effect
+- Click: Opens GitHub repo in new tab
+
+## Project Structure
+
+```
+megadev-ai-website.ai/
+├── agents/                    # Detailed specs (reference docs)
+│   ├── character-art.agent.md
+│   ├── blueprint-ui.agent.md
+│   ├── interactions.agent.md
+│   └── deployment.agent.md
+├── images/                    # Source images
+│   ├── whip.webp             # Character reference
+│   └── blueprint_example.png  # Design reference
+├── src/                       # React source (to be created)
+│   ├── components/
+│   └── styles/
+└── public/                    # Static assets (to be created)
+```
+
+## Agent Documentation
+
+For detailed specifications, refer to:
+- Character transformation: `agents/character-art.agent.md`
+- UI patterns: `agents/blueprint-ui.agent.md`
+- Interactions: `agents/interactions.agent.md`
+- Build/deploy: `agents/deployment.agent.md`
+
+## Code Style
+
+- Use TypeScript strict mode
+- Prefer CSS variables over hardcoded colors
+- Components should be small and focused
+- Accessibility is required (keyboard nav, ARIA labels)

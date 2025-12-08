@@ -1,0 +1,104 @@
+---
+description: Interaction patterns for megadev.ai - hover effects, clicks, accessibility
+globs: ["src/components/**/*.tsx", "src/hooks/**", "*.tsx"]
+---
+
+# Interaction Patterns
+
+## Whip Element Interactions
+
+The whip weapon links to: `https://github.com/sungchun12/claiw`
+
+### Hover Glow Effect
+
+```css
+.whip-interactive {
+  transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.whip-interactive:hover,
+.whip-interactive:focus-visible {
+  filter: drop-shadow(0 0 8px var(--color-accent-glow, #00D4FF)) 
+          drop-shadow(0 0 20px var(--color-accent-glow, #00D4FF));
+}
+
+.whip-interactive:active {
+  filter: drop-shadow(0 0 12px #00D4FF) 
+          drop-shadow(0 0 30px #00D4FF);
+  transform: scale(0.98);
+}
+```
+
+### Click Handler Pattern
+
+Always use this pattern for external links:
+
+```tsx
+const handleClick = () => {
+  window.open('https://github.com/sungchun12/claiw', '_blank', 'noopener,noreferrer');
+};
+```
+
+Or with native anchor:
+```tsx
+<a 
+  href="https://github.com/sungchun12/claiw"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+```
+
+## Accessibility Requirements
+
+1. **Keyboard navigation**: All interactive elements must be focusable via Tab
+2. **Focus states**: `:focus-visible` must match `:hover` styling
+3. **ARIA labels**: Use `aria-label` for non-text interactive elements
+4. **Enter/Space**: Both keys should trigger click actions
+
+```tsx
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    handleClick();
+  }
+};
+```
+
+## Interactive Component Template
+
+```tsx
+<button
+  onClick={handleClick}
+  onKeyDown={handleKeyDown}
+  className="whip-interactive"
+  aria-label="Open claiw project on GitHub"
+  tabIndex={0}
+>
+  {children}
+</button>
+```
+
+## Animation Options
+
+### CSS-only pulse (simple)
+```css
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px #00D4FF); }
+  50% { filter: drop-shadow(0 0 16px #00D4FF) drop-shadow(0 0 24px #00D4FF); }
+}
+
+.whip-interactive:hover {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+```
+
+### Framer Motion (if installed)
+```tsx
+whileHover={{ filter: 'drop-shadow(0 0 20px #00D4FF)' }}
+transition={{ duration: 0.3 }}
+```
+
+## File References
+
+- Full specification: `agents/interactions.agent.md`
