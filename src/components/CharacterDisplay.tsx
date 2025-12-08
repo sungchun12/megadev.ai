@@ -24,10 +24,10 @@ export function CharacterDisplay() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Original Zero image with CSS color transformation */}
+        {/* Whip weapon - claiw CLI AI tool */}
         <img 
-          src="/whip.webp" 
-          alt="Megadev character wielding energy whip"
+          src="/whip_only.png" 
+          alt="Energy whip - claiw CLI AI tool"
           className="character-image"
         />
         

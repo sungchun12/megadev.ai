@@ -3,58 +3,54 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 .character-wrapper {
   position: relative;
+  z-index: 10;
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
 .character-image {
   width: auto;
-  height: 420px;
-  max-width: 380px;
+  height: 500px;
+  max-width: 500px;
   object-fit: contain;
+  position: relative;
+  z-index: 10;
   
-  /* Remove white background */
-  mix-blend-mode: multiply;
-  
-  /* Color transformation: Red → Blue */
-  /* This shifts the hue while preserving the cyan whip energy */
+  /* Cyan glow effect */
   filter: 
-    hue-rotate(160deg)      /* Shift red toward blue */
-    saturate(1.3)           /* Boost color intensity */
-    brightness(1.05)        /* Slight brightness boost */
-    drop-shadow(0 0 15px rgba(0, 212, 255, 0.4));
+    drop-shadow(0 0 15px rgba(0, 212, 255, 0.5))
+    drop-shadow(0 0 30px rgba(0, 212, 255, 0.3));
 }
 
 /* Whip glow effect on hover */
 .character-wrapper.whip-active {
-  transform: scale(1.02);
+  transform: scale(1.05);
 }
 
 .character-wrapper.whip-active .character-image {
   filter: 
-    hue-rotate(160deg) 
-    saturate(1.5) 
-    brightness(1.1)
-    drop-shadow(0 0 20px rgba(0, 212, 255, 0.7))
-    drop-shadow(0 0 40px rgba(0, 212, 255, 0.5))
-    drop-shadow(0 0 60px rgba(0, 212, 255, 0.3));
+    drop-shadow(0 0 20px rgba(0, 212, 255, 0.8))
+    drop-shadow(0 0 40px rgba(0, 212, 255, 0.6))
+    drop-shadow(0 0 60px rgba(0, 212, 255, 0.4))
+    drop-shadow(0 0 80px rgba(0, 212, 255, 0.2));
 }
 
-/* Invisible hitbox for whip interaction */
+/* Invisible hitbox for whip interaction - covers entire whip */
 .whip-hitbox {
   position: absolute;
-  /* Position over the whip area (upper left portion of image) */
   top: 0;
   left: 0;
-  width: 70%;
-  height: 45%;
+  width: 100%;
+  height: 100%;
   background: transparent;
   border: none;
   cursor: pointer;
   outline: none;
+  z-index: 11;
   
   /* Debug - uncomment to see hitbox */
   /* background: rgba(0, 212, 255, 0.2); */
@@ -69,14 +65,14 @@
 /* Responsive */
 @media (max-width: 768px) {
   .character-image {
-    height: 320px;
-    max-width: 280px;
+    height: 380px;
+    max-width: 380px;
   }
 }
 
 @media (max-width: 480px) {
   .character-image {
-    height: 240px;
-    max-width: 200px;
+    height: 280px;
+    max-width: 280px;
   }
 }
