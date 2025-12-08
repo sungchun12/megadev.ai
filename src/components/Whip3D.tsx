@@ -1,14 +1,26 @@
-import { useRef, useMemo, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 import './Whip3D.css'
 
+// Shared state for mouse interaction
+interface WhipState {
+  isDragging: boolean
+  mouseX: number
+  mouseY: number
+  targetX: number
+  targetY: number
+  returnProgress: number
+  velocity: { x: number; y: number }
+}
+
 // Custom glowing material
-const glowMaterial = new THREE.ShaderMaterial({
+const createGlowMaterial = () => new THREE.ShaderMaterial({
   uniforms: {
     time: { value: 0 },
     color: { value: new THREE.Color('#00D4FF') },
+    intensity: { value: 1.0 },
   },
   vertexShader: `
     varying vec3 vNormal;
@@ -24,20 +36,17 @@ const glowMaterial = new THREE.ShaderMaterial({
   fragmentShader: `
     uniform float time;
     uniform vec3 color;
+    uniform float intensity;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
     
     void main() {
-      // Fresnel effect for edge glow
       vec3 viewDir = normalize(vViewPosition);
       float fresnel = pow(1.0 - abs(dot(viewDir, vNormal)), 2.0);
-      
-      // Pulsing glow
       float pulse = 0.7 + 0.3 * sin(time * 2.0);
       
-      // Core color with fresnel glow
-      vec3 coreColor = color * 0.9;
-      vec3 glowColor = vec3(0.5, 1.0, 1.0);
+      vec3 coreColor = color * 0.9 * intensity;
+      vec3 glowColor = vec3(0.5, 1.0, 1.0) * intensity;
       
       vec3 finalColor = mix(coreColor, glowColor, fresnel * pulse);
       float alpha = 0.9 + fresnel * 0.1;
@@ -52,21 +61,25 @@ const glowMaterial = new THREE.ShaderMaterial({
 // Individual arrow segment of the whip
 function WhipSegment({ 
   index, 
-  total, 
+  total,
+  whipState,
 }: { 
   index: number
   total: number
+  whipState: React.MutableRefObject<WhipState>
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
-  const materialRef = useRef<THREE.ShaderMaterial>(glowMaterial.clone())
+  const materialRef = useRef<THREE.ShaderMaterial>(createGlowMaterial())
   const progress = index / total
   
-  // Create arrow/chevron shape
+  // Store the idle position for returning
+  const idlePosition = useRef({ x: 0, y: 0, z: 0 })
+  const currentOffset = useRef({ x: 0, y: 0 })
+  
   const geometry = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 0.18 - progress * 0.06
     
-    // Arrow/chevron pointing right
     shape.moveTo(0, size * 0.5)
     shape.lineTo(size * 1.5, 0)
     shape.lineTo(0, -size * 0.5)
@@ -88,34 +101,76 @@ function WhipSegment({
     if (!meshRef.current) return
     
     const time = state.clock.elapsedTime
+    const ws = whipState.current
     
-    // Update shader time
+    // Update shader time and intensity
     if (materialRef.current.uniforms) {
       materialRef.current.uniforms.time.value = time
+      // Glow more intensely when being whipped
+      const targetIntensity = ws.isDragging ? 1.5 : 1.0
+      materialRef.current.uniforms.intensity.value += (targetIntensity - materialRef.current.uniforms.intensity.value) * 0.1
     }
     
-    // Create flowing wave motion along the whip
+    // Base wave motion
     const waveOffset = index * 0.25
     const wave1 = Math.sin(time * 1.8 + waveOffset) * 0.12
     const wave2 = Math.cos(time * 1.3 + waveOffset * 0.8) * 0.08
     const wave3 = Math.sin(time * 0.9 + waveOffset * 1.2) * 0.06
     
-    // Spiral path for the whip
+    // Spiral path for idle animation
     const angle = progress * Math.PI * 2.2 + time * 0.4
     const radius = 1.2 + progress * 1.0 + wave1
     
-    const x = Math.cos(angle) * radius + wave2
-    const y = Math.sin(angle) * radius * 0.7 + wave3
-    const z = progress * 0.3 + Math.sin(time * 0.7 + index * 0.15) * 0.08
+    // Calculate idle position
+    const idleX = Math.cos(angle) * radius + wave2
+    const idleY = Math.sin(angle) * radius * 0.7 + wave3
+    const idleZ = progress * 0.3 + Math.sin(time * 0.7 + index * 0.15) * 0.08
+    
+    // Store for reference
+    idlePosition.current = { x: idleX, y: idleY, z: idleZ }
+    
+    // Calculate drag influence (segments near the end are more affected)
+    const dragInfluence = Math.pow(progress, 0.6) // More influence at the tip
+    
+    if (ws.isDragging) {
+      // When dragging, follow the mouse with a whip-like delay
+      const delayFactor = 1 - progress * 0.7 // Tip follows faster
+      const targetOffsetX = ws.targetX * 2.5 * dragInfluence
+      const targetOffsetY = ws.targetY * 2.5 * dragInfluence
+      
+      // Add velocity-based overshoot for whip feel
+      const velocityInfluence = dragInfluence * 0.5
+      const overshootX = ws.velocity.x * velocityInfluence
+      const overshootY = ws.velocity.y * velocityInfluence
+      
+      currentOffset.current.x += ((targetOffsetX + overshootX) - currentOffset.current.x) * (0.15 - delayFactor * 0.1)
+      currentOffset.current.y += ((targetOffsetY + overshootY) - currentOffset.current.y) * (0.15 - delayFactor * 0.1)
+    } else {
+      // Smoothly return to idle with elastic easing
+      const returnSpeed = 0.03 + progress * 0.02 // Tip returns slightly faster
+      const elasticity = Math.sin(ws.returnProgress * Math.PI * 2) * (1 - ws.returnProgress) * 0.3
+      
+      currentOffset.current.x += (0 - currentOffset.current.x) * returnSpeed
+      currentOffset.current.y += (0 - currentOffset.current.y) * returnSpeed
+      
+      // Add subtle bounce
+      currentOffset.current.x += elasticity * 0.1 * dragInfluence
+      currentOffset.current.y += elasticity * 0.1 * dragInfluence
+    }
+    
+    // Final position
+    const x = idleX + currentOffset.current.x
+    const y = idleY + currentOffset.current.y
+    const z = idleZ
     
     meshRef.current.position.set(x, y, z)
     
-    // Rotate to follow the path
+    // Rotate to follow the path (accounting for offset)
     const nextAngle = angle + 0.15
-    const tangentX = -Math.sin(nextAngle)
-    const tangentY = Math.cos(nextAngle) * 0.7
+    const tangentX = -Math.sin(nextAngle) + currentOffset.current.x * 0.3
+    const tangentY = Math.cos(nextAngle) * 0.7 + currentOffset.current.y * 0.3
     meshRef.current.rotation.z = Math.atan2(tangentY, tangentX) + Math.PI / 2
-    meshRef.current.rotation.y = Math.sin(time * 0.6 + index * 0.08) * 0.15
+    meshRef.current.rotation.y = Math.sin(time * 0.6 + index * 0.08) * 0.15 + currentOffset.current.x * 0.2
   })
 
   return (
@@ -124,15 +179,15 @@ function WhipSegment({
 }
 
 // Whip tip - larger arrow head
-function WhipTip() {
+function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   const meshRef = useRef<THREE.Mesh>(null)
-  const materialRef = useRef<THREE.ShaderMaterial>(glowMaterial.clone())
+  const materialRef = useRef<THREE.ShaderMaterial>(createGlowMaterial())
+  const currentOffset = useRef({ x: 0, y: 0 })
   
   const geometry = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 0.25
     
-    // Larger spear-like tip
     shape.moveTo(0, size * 0.6)
     shape.lineTo(size * 2.2, 0)
     shape.lineTo(0, -size * 0.6)
@@ -154,13 +209,14 @@ function WhipTip() {
     if (!meshRef.current) return
     
     const time = state.clock.elapsedTime
+    const ws = whipState.current
     
-    // Update shader time
     if (materialRef.current.uniforms) {
       materialRef.current.uniforms.time.value = time
+      const targetIntensity = ws.isDragging ? 1.8 : 1.0
+      materialRef.current.uniforms.intensity.value += (targetIntensity - materialRef.current.uniforms.intensity.value) * 0.1
     }
     
-    // Position at the end of the whip spiral
     const progress = 1
     const waveOffset = 30 * 0.25
     const wave1 = Math.sin(time * 1.8 + waveOffset) * 0.12
@@ -168,18 +224,44 @@ function WhipTip() {
     const angle = progress * Math.PI * 2.2 + time * 0.4
     const radius = 1.2 + progress * 1.0 + wave1
     
-    const x = Math.cos(angle) * radius + Math.cos(time * 1.3 + 7) * 0.08
-    const y = Math.sin(angle) * radius * 0.7 + Math.sin(time * 0.9 + 10) * 0.06 - 0.3
-    const z = progress * 0.3 + Math.sin(time * 0.7 + 30 * 0.15) * 0.08 + 0.15
+    const idleX = Math.cos(angle) * radius + Math.cos(time * 1.3 + 7) * 0.08
+    const idleY = Math.sin(angle) * radius * 0.7 + Math.sin(time * 0.9 + 10) * 0.06 - 0.3
+    const idleZ = progress * 0.3 + Math.sin(time * 0.7 + 30 * 0.15) * 0.08 + 0.15
+    
+    // Tip has maximum drag influence
+    const dragInfluence = 1.0
+    
+    if (ws.isDragging) {
+      const targetOffsetX = ws.targetX * 3.0 * dragInfluence
+      const targetOffsetY = ws.targetY * 3.0 * dragInfluence
+      
+      // More velocity influence at the tip for that crack effect
+      const overshootX = ws.velocity.x * 0.8
+      const overshootY = ws.velocity.y * 0.8
+      
+      currentOffset.current.x += ((targetOffsetX + overshootX) - currentOffset.current.x) * 0.2
+      currentOffset.current.y += ((targetOffsetY + overshootY) - currentOffset.current.y) * 0.2
+    } else {
+      const returnSpeed = 0.04
+      const elasticity = Math.sin(ws.returnProgress * Math.PI * 3) * (1 - ws.returnProgress) * 0.4
+      
+      currentOffset.current.x += (0 - currentOffset.current.x) * returnSpeed
+      currentOffset.current.y += (0 - currentOffset.current.y) * returnSpeed
+      currentOffset.current.x += elasticity * 0.15
+      currentOffset.current.y += elasticity * 0.1
+    }
+    
+    const x = idleX + currentOffset.current.x
+    const y = idleY + currentOffset.current.y
+    const z = idleZ
     
     meshRef.current.position.set(x, y, z)
     
-    // Point in direction of movement
     const nextAngle = angle + 0.15
-    const tangentX = -Math.sin(nextAngle)
-    const tangentY = Math.cos(nextAngle) * 0.7
+    const tangentX = -Math.sin(nextAngle) + currentOffset.current.x * 0.4
+    const tangentY = Math.cos(nextAngle) * 0.7 + currentOffset.current.y * 0.4
     meshRef.current.rotation.z = Math.atan2(tangentY, tangentX)
-    meshRef.current.rotation.y = Math.sin(time * 0.6) * 0.2
+    meshRef.current.rotation.y = Math.sin(time * 0.6) * 0.2 + currentOffset.current.x * 0.3
   })
 
   return (
@@ -188,44 +270,49 @@ function WhipTip() {
 }
 
 // Main whip assembly
-function Whip() {
+function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   const groupRef = useRef<THREE.Group>(null)
   const segmentCount = 30
   
   useFrame((state) => {
     if (!groupRef.current) return
     const time = state.clock.elapsedTime
+    const ws = whipState.current
     
-    // Gentle overall sway
-    groupRef.current.rotation.x = Math.sin(time * 0.25) * 0.04
-    groupRef.current.rotation.y = Math.cos(time * 0.18) * 0.04
+    // Update return progress
+    if (!ws.isDragging && ws.returnProgress < 1) {
+      ws.returnProgress = Math.min(1, ws.returnProgress + 0.02)
+    }
+    
+    // Gentle overall sway (reduced when dragging)
+    const swayAmount = ws.isDragging ? 0.01 : 0.04
+    groupRef.current.rotation.x = Math.sin(time * 0.25) * swayAmount
+    groupRef.current.rotation.y = Math.cos(time * 0.18) * swayAmount
   })
 
   return (
     <group ref={groupRef}>
       <Float
         speed={1.5}
-        rotationIntensity={0.15}
-        floatIntensity={0.25}
+        rotationIntensity={whipState.current.isDragging ? 0.05 : 0.15}
+        floatIntensity={whipState.current.isDragging ? 0.1 : 0.25}
       >
-        {/* Whip segments */}
         {Array.from({ length: segmentCount }).map((_, i) => (
           <WhipSegment
             key={i}
             index={i}
             total={segmentCount}
+            whipState={whipState}
           />
         ))}
-        
-        {/* Whip tip */}
-        <WhipTip />
+        <WhipTip whipState={whipState} />
       </Float>
     </group>
   )
 }
 
 // Ambient glow particles
-function GlowParticles() {
+function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   const particlesRef = useRef<THREE.Points>(null)
   const count = 40
   
@@ -244,9 +331,12 @@ function GlowParticles() {
   useFrame((state) => {
     if (!particlesRef.current) return
     const time = state.clock.elapsedTime
+    const ws = whipState.current
     
-    particlesRef.current.rotation.z = time * 0.08
-    particlesRef.current.rotation.y = Math.sin(time * 0.15) * 0.08
+    // Particles react to dragging
+    const rotationSpeed = ws.isDragging ? 0.15 : 0.08
+    particlesRef.current.rotation.z = time * rotationSpeed + ws.targetX * 0.3
+    particlesRef.current.rotation.y = Math.sin(time * 0.15) * 0.08 + ws.targetY * 0.2
   })
 
   return (
@@ -271,6 +361,38 @@ function GlowParticles() {
   )
 }
 
+// Mouse tracker component
+function MouseTracker({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+  const { viewport } = useThree()
+  const lastMouse = useRef({ x: 0, y: 0 })
+  
+  useFrame(({ pointer }) => {
+    const ws = whipState.current
+    
+    if (ws.isDragging) {
+      // Convert pointer to normalized coordinates (-1 to 1)
+      const newX = pointer.x
+      const newY = pointer.y
+      
+      // Calculate velocity
+      ws.velocity.x = (newX - lastMouse.current.x) * 10
+      ws.velocity.y = (newY - lastMouse.current.y) * 10
+      
+      // Smooth target following
+      ws.targetX += (newX - ws.targetX) * 0.3
+      ws.targetY += (newY - ws.targetY) * 0.3
+      
+      lastMouse.current = { x: newX, y: newY }
+    } else {
+      // Decay velocity when not dragging
+      ws.velocity.x *= 0.95
+      ws.velocity.y *= 0.95
+    }
+  })
+  
+  return null
+}
+
 // Loading fallback
 function LoadingFallback() {
   return (
@@ -282,39 +404,75 @@ function LoadingFallback() {
 }
 
 // Scene setup
-function Scene() {
+function Scene({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   return (
     <>
-      {/* Lighting */}
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
       <pointLight position={[-3, 2, 2]} intensity={1.5} color="#00D4FF" distance={10} />
       <pointLight position={[3, -2, 1]} intensity={1} color="#4DA6FF" distance={8} />
       
-      {/* The whip */}
-      <Whip />
-      
-      {/* Ambient particles */}
-      <GlowParticles />
+      <MouseTracker whipState={whipState} />
+      <Whip whipState={whipState} />
+      <GlowParticles whipState={whipState} />
     </>
   )
 }
 
 // Main exported component
-export function Whip3D({ onClick }: { onClick?: () => void }) {
+export function Whip3D() {
+  const whipState = useRef<WhipState>({
+    isDragging: false,
+    mouseX: 0,
+    mouseY: 0,
+    targetX: 0,
+    targetY: 0,
+    returnProgress: 1,
+    velocity: { x: 0, y: 0 },
+  })
+  
+  const [isDragging, setIsDragging] = useState(false)
+  
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault()
+    whipState.current.isDragging = true
+    whipState.current.returnProgress = 0
+    setIsDragging(true)
+  }, [])
+  
+  const handlePointerUp = useCallback(() => {
+    whipState.current.isDragging = false
+    whipState.current.returnProgress = 0
+    setIsDragging(false)
+  }, [])
+  
+  const handlePointerLeave = useCallback(() => {
+    whipState.current.isDragging = false
+    whipState.current.returnProgress = 0
+    setIsDragging(false)
+  }, [])
+  
+  // Handle escape key to cancel drag
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && whipState.current.isDragging) {
+        whipState.current.isDragging = false
+        whipState.current.returnProgress = 0
+        setIsDragging(false)
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+  
   return (
     <div 
-      className="whip-3d-container" 
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onClick?.()
-        }
-      }}
-      aria-label="Click to visit claiw on GitHub"
+      className={`whip-3d-container ${isDragging ? 'whipping' : ''}`}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      aria-label="Hold and drag to whip"
     >
       <Canvas
         camera={{ position: [0, 0, 4.5], fov: 50 }}
@@ -323,12 +481,16 @@ export function Whip3D({ onClick }: { onClick?: () => void }) {
           alpha: true,
           powerPreference: 'high-performance'
         }}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', touchAction: 'none' }}
       >
         <Suspense fallback={<LoadingFallback />}>
-          <Scene />
+          <Scene whipState={whipState} />
         </Suspense>
       </Canvas>
+      
+      {isDragging && (
+        <div className="whip-hint">Release to let go</div>
+      )}
     </div>
   )
 }
