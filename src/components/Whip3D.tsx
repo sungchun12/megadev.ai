@@ -167,11 +167,19 @@ function WhipSegment({
     
     meshRef.current.position.set(x, y, z)
     
-    // Rotate to follow the path (accounting for offset)
-    const nextAngle = angle + 0.15
-    const tangentX = -Math.sin(nextAngle) + currentOffset.current.x * 0.3
-    const tangentY = Math.cos(nextAngle) * 0.7 + currentOffset.current.y * 0.3
-    meshRef.current.rotation.z = Math.atan2(tangentY, tangentX) + Math.PI / 2
+    // Calculate tangent direction (direction of motion along the spiral)
+    // For a spiral, the tangent at angle θ points in direction (-sin θ, cos θ)
+    // We want arrows to point ALONG the whip flow (toward the tip)
+    const tangentX = -Math.sin(angle)
+    const tangentY = Math.cos(angle) * 0.7 // Account for Y squish
+    
+    // Add influence from drag offset for more dynamic rotation
+    const offsetInfluence = 0.4
+    const finalTangentX = tangentX + currentOffset.current.x * offsetInfluence
+    const finalTangentY = tangentY + currentOffset.current.y * offsetInfluence
+    
+    // Rotate arrow to point along tangent (arrow shape points in +X by default)
+    meshRef.current.rotation.z = Math.atan2(finalTangentY, finalTangentX)
     meshRef.current.rotation.y = Math.sin(time * 0.6 + index * 0.08) * 0.15 + currentOffset.current.x * 0.2
   })
 
@@ -259,10 +267,16 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
     
     meshRef.current.position.set(x, y, z)
     
-    const nextAngle = angle + 0.15
-    const tangentX = -Math.sin(nextAngle) + currentOffset.current.x * 0.4
-    const tangentY = Math.cos(nextAngle) * 0.7 + currentOffset.current.y * 0.4
-    meshRef.current.rotation.z = Math.atan2(tangentY, tangentX)
+    // Calculate tangent direction (same as segments)
+    const tangentX = -Math.sin(angle)
+    const tangentY = Math.cos(angle) * 0.7
+    
+    // Add stronger offset influence for the tip
+    const offsetInfluence = 0.5
+    const finalTangentX = tangentX + currentOffset.current.x * offsetInfluence
+    const finalTangentY = tangentY + currentOffset.current.y * offsetInfluence
+    
+    meshRef.current.rotation.z = Math.atan2(finalTangentY, finalTangentX)
     meshRef.current.rotation.y = Math.sin(time * 0.6) * 0.2 + currentOffset.current.x * 0.3
   })
 
