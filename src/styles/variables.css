@@ -18,11 +18,11 @@
   --color-accent-glow: #00D4FF;
   --color-accent-highlight: #4DA6FF;
   
-  /* Typography */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
-  --font-label: 'IBM Plex Sans', 'Arial Narrow', sans-serif;
+  /* Typography - Super Modern */
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-label: 'Outfit', sans-serif;
   
   /* Spacing */
   --spacing-xs: 0.25rem;
