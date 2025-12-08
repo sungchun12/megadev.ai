@@ -1,6 +1,7 @@
 import { BlueprintBackground } from './components/BlueprintBackground'
 import { BlueprintCoordinates } from './components/BlueprintCoordinates'
 import { ShaderBackground } from './components/ShaderBackground'
+import { CharacterDisplay } from './components/CharacterDisplay'
 import { Header } from './components/Header'
 import './App.css'
 
@@ -15,10 +16,7 @@ function App() {
         <Header />
         
         <div className="hero-container">
-          <div className="character-placeholder">
-            <span className="placeholder-text">[ CHARACTER ]</span>
-            <span className="placeholder-subtext">megadev character coming soon</span>
-          </div>
+          <CharacterDisplay />
           
           <div className="annotation-panel">
             <div className="annotation">

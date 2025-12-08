@@ -27,33 +27,6 @@
   padding: var(--spacing-lg);
 }
 
-/* Character Placeholder */
-.character-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 300px;
-  height: 400px;
-  border: 2px dashed var(--color-line-annotation);
-  border-radius: 4px;
-  background: rgba(0, 71, 171, 0.3);
-}
-
-.placeholder-text {
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.1em;
-}
-
-.placeholder-subtext {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-line-annotation);
-  margin-top: var(--spacing-sm);
-}
-
 /* Annotation Panel */
 .annotation-panel {
   max-width: 280px;
@@ -133,11 +106,6 @@
   .hero-container {
     flex-direction: column;
     gap: var(--spacing-lg);
-  }
-  
-  .character-placeholder {
-    width: 200px;
-    height: 280px;
   }
   
   .annotation-panel {
