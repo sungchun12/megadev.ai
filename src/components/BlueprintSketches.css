@@ -1,0 +1,186 @@
+.blueprint-sketches {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sketches-svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
+/* ============ CURVES ============ */
+.sketch-curve {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sketch-curve.thin {
+  stroke-width: 1;
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.sketch-curve.dashed {
+  stroke-dasharray: 8 8;
+  stroke: rgba(255, 255, 255, 0.35);
+}
+
+/* ============ LINES ============ */
+.sketch-line {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+}
+
+.sketch-line.thin {
+  stroke-width: 0.75;
+  stroke: rgba(255, 255, 255, 0.35);
+}
+
+.sketch-line.thin.dashed {
+  stroke-dasharray: 4 4;
+}
+
+.sketch-line.annotation {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 0.75;
+}
+
+/* ============ CIRCLES ============ */
+.sketch-circle {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+  fill: none;
+}
+
+.sketch-circle.dashed {
+  stroke-dasharray: 6 4;
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* ============ NODES - SQUARES ============ */
+.sketch-node {
+  fill: rgba(255, 255, 255, 0.6);
+}
+
+.sketch-node.small {
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+/* ============ NODES - CIRCLES ============ */
+.sketch-node-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1.5;
+}
+
+.sketch-node-circle.filled {
+  fill: rgba(255, 255, 255, 0.8);
+  stroke: none;
+}
+
+.sketch-node-circle.filled.cyan {
+  fill: var(--color-accent-glow, #00D4FF);
+}
+
+/* ============ DIAMONDS ============ */
+.sketch-diamond {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1;
+}
+
+.sketch-diamond.filled {
+  fill: rgba(255, 255, 255, 0.8);
+  stroke: none;
+}
+
+/* ============ TEXT STYLES ============ */
+.sketch-text {
+  font-family: var(--font-mono, 'Courier New', monospace);
+  font-size: 12px;
+  fill: rgba(255, 255, 255, 0.5);
+}
+
+.sketch-text.tiny {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
+.sketch-text.small {
+  font-size: 10px;
+}
+
+.sketch-text.dimension {
+  font-size: 14px;
+  fill: rgba(255, 255, 255, 0.6);
+  text-anchor: middle;
+}
+
+.sketch-text.equation {
+  font-style: italic;
+  font-size: 13px;
+  fill: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.02em;
+}
+
+.sketch-text.equation.small {
+  font-size: 11px;
+}
+
+.sketch-text.specs {
+  font-size: 9px;
+  fill: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.08em;
+}
+
+.sketch-text.coords {
+  font-size: 10px;
+  fill: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.03em;
+}
+
+/* ============ SUBTLE ANIMATIONS ============ */
+@keyframes node-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.sketch-node-circle.filled.cyan {
+  animation: node-pulse 3s ease-in-out infinite;
+}
+
+/* Stagger the animations */
+.sketch-group:nth-child(3n) .sketch-node-circle.filled.cyan {
+  animation-delay: 0.5s;
+}
+
+.sketch-group:nth-child(5n) .sketch-node-circle.filled.cyan {
+  animation-delay: 1s;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1200px) {
+  .sketches-svg {
+    opacity: 0.35;
+  }
+}
+
+@media (max-width: 768px) {
+  .sketches-svg {
+    opacity: 0.2;
+  }
+  
+  .sketch-text {
+    display: none;
+  }
+}
+
