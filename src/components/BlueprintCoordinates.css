@@ -1,0 +1,27 @@
+.coordinates {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+  z-index: 10;
+}
+
+.coordinates-item {
+  position: absolute;
+  padding: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.coordinates-top-left {
+  top: 0;
+  left: 0;
+}
+
+.coordinates-bottom-right {
+  bottom: 0;
+  right: 0;
+}
+

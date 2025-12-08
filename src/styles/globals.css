@@ -1,0 +1,80 @@
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  line-height: 1.6;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Blueprint Background */
+.blueprint-bg {
+  position: relative;
+  background-color: var(--color-bg-primary);
+  background-image: 
+    /* Minor grid */
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px),
+    /* Major grid */
+    linear-gradient(var(--color-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-major) 1px, transparent 1px);
+  background-size: 
+    var(--grid-minor) var(--grid-minor),
+    var(--grid-minor) var(--grid-minor),
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major);
+  background-position: center center;
+}
+
+/* Typography utilities */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-accent-glow);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-accent-glow);
+  color: var(--color-bg-deep);
+}
+
+/* Responsive: allow scroll on mobile if needed */
+@media (max-width: 1023px) {
+  html, body {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
+  }
+}
+
