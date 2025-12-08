@@ -1,6 +1,6 @@
 # Design Brainstorm
 
-I want to build a static website with beautiful design.
+I want to build a static or pre-rendered website with beautiful design.
 
 General Design Considerations:
 - #0047AB for the background
