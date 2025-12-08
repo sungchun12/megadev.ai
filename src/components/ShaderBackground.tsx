@@ -12,8 +12,9 @@ const vertexShaderSource = `
   }
 `
 
-// Fragment shader - recreating shaders.com metaball glow effect
+// Fragment shader - Apple-style liquid glass effect on blueprint
 const fragmentShaderSource = `
+  #extension GL_OES_standard_derivatives : enable
   precision highp float;
   
   varying vec2 v_uv;
@@ -21,120 +22,166 @@ const fragmentShaderSource = `
   uniform vec2 u_mouse;
   uniform float u_time;
   
-  // Smooth minimum for metaball blending
-  float smin(float a, float b, float k) {
-    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-    return mix(b, a, h) - k * h * (1.0 - h);
+  #define PI 3.14159265359
+  
+  // Simplex noise for organic movement
+  vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+  
+  float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                        -0.577350269189626, 0.024390243902439);
+    vec2 i  = floor(v + dot(v, C.yy));
+    vec2 x0 = v - i + dot(i, C.xx);
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod(i, 289.0);
+    vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0))
+                     + i.x + vec3(0.0, i1.x, 1.0));
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
+                            dot(x12.zw,x12.zw)), 0.0);
+    m = m*m;
+    m = m*m;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+    vec3 g;
+    g.x  = a0.x  * x0.x  + h.x  * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
   }
   
-  // Noise function for organic movement
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  // Blueprint grid pattern
+  float grid(vec2 uv, float size) {
+    vec2 grid = abs(fract(uv * size - 0.5) - 0.5);
+    vec2 lineWidth = vec2(0.02);
+    vec2 lines = smoothstep(lineWidth, vec2(0.0), grid);
+    return max(lines.x, lines.y);
   }
   
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
+  // Liquid distortion
+  vec2 liquidDistort(vec2 uv, vec2 center, float radius, float time) {
+    vec2 delta = uv - center;
+    float dist = length(delta);
+    float influence = smoothstep(radius, 0.0, dist);
     
-    float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
+    // Organic liquid movement
+    float n1 = snoise(uv * 4.0 + time * 0.5);
+    float n2 = snoise(uv * 4.0 + vec2(5.0, 3.0) + time * 0.5);
+    vec2 noiseOffset = vec2(n1, n2) * 0.03;
     
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-  }
-  
-  // Iridescent color palette like shaders.com
-  vec3 palette(float t) {
-    // Holographic/iridescent colors
-    vec3 a = vec3(0.5, 0.5, 0.5);
-    vec3 b = vec3(0.5, 0.5, 0.5);
-    vec3 c = vec3(1.0, 1.0, 1.0);
-    vec3 d = vec3(0.263, 0.416, 0.557); // Shifted for cyan/pink/purple
+    // Refraction ripple
+    float ripple = sin(dist * 25.0 - time * 3.0) * 0.015;
+    vec2 rippleOffset = normalize(delta + 0.001) * ripple;
     
-    return a + b * cos(6.28318 * (c * t + d));
+    // Magnification/lens effect
+    vec2 lensOffset = delta * influence * 0.1;
+    
+    return (noiseOffset + rippleOffset - lensOffset) * influence;
   }
   
   void main() {
     vec2 uv = v_uv;
-    vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
-    uv = (uv - 0.5) * aspect + 0.5;
+    float aspect = u_resolution.x / u_resolution.y;
+    vec2 uvAspect = vec2(uv.x * aspect, uv.y);
     
     vec2 mouse = u_mouse / u_resolution;
-    mouse = (mouse - 0.5) * aspect + 0.5;
+    vec2 mouseAspect = vec2(mouse.x * aspect, mouse.y);
     
-    float time = u_time * 0.5;
+    float time = u_time;
+    float dist = length(uvAspect - mouseAspect);
     
-    // Create multiple metaballs
-    float metaball = 0.0;
+    // Glass effect parameters
+    float glassRadius = 0.2;
+    float glassInfluence = smoothstep(glassRadius, 0.0, dist);
+    float softEdge = smoothstep(glassRadius * 1.3, glassRadius * 0.5, dist);
     
-    // Mouse-following metaball (main glow)
-    vec2 p1 = mouse;
-    float d1 = length(uv - p1);
-    metaball += 0.08 / (d1 + 0.01);
+    // Apply liquid distortion to UV
+    vec2 distortion = liquidDistort(uvAspect, mouseAspect, glassRadius, time);
+    vec2 distortedUV = uv + distortion;
     
-    // Orbiting metaballs around mouse
-    for (float i = 0.0; i < 5.0; i++) {
-      float angle = time * (0.5 + i * 0.1) + i * 1.2566;
-      float radius = 0.1 + 0.05 * sin(time + i);
-      vec2 offset = vec2(cos(angle), sin(angle)) * radius;
-      vec2 p = mouse + offset;
-      float d = length(uv - p);
-      metaball += (0.03 + 0.01 * sin(time + i * 2.0)) / (d + 0.01);
+    // Blueprint colors
+    vec3 blueprintBase = vec3(0.0, 0.278, 0.671); // #0047AB
+    vec3 blueprintLight = vec3(0.0, 0.35, 0.8);
+    
+    // Grid pattern - normal and distorted
+    float minorGridNormal = grid(uv, 50.0);
+    float majorGridNormal = grid(uv, 10.0);
+    float minorGridDistorted = grid(distortedUV, 50.0);
+    float majorGridDistorted = grid(distortedUV, 10.0);
+    
+    // Mix between normal and distorted grid based on glass influence
+    float minorGrid = mix(minorGridNormal, minorGridDistorted, glassInfluence);
+    float majorGrid = mix(majorGridNormal, majorGridDistorted, glassInfluence);
+    
+    // Base grid color
+    vec3 gridColor = blueprintBase;
+    gridColor = mix(gridColor, vec3(1.0), minorGrid * 0.08);
+    gridColor = mix(gridColor, vec3(1.0), majorGrid * 0.15);
+    
+    // === LIQUID GLASS EFFECT ===
+    
+    // Frosted glass tint (Apple-style cool white-blue)
+    vec3 glassTint = vec3(0.85, 0.9, 1.0);
+    vec3 glassHighlight = vec3(1.0, 1.0, 1.0);
+    
+    // Frosted blur effect (sample nearby grid)
+    vec3 blurColor = vec3(0.0);
+    float blurRadius = glassInfluence * 0.015;
+    for (float i = 0.0; i < 8.0; i++) {
+      float angle = i * PI * 0.25;
+      vec2 offset = vec2(cos(angle), sin(angle)) * blurRadius;
+      vec2 sampleUV = distortedUV + offset;
+      float sMinor = grid(sampleUV, 50.0);
+      float sMajor = grid(sampleUV, 10.0);
+      vec3 sColor = blueprintBase;
+      sColor = mix(sColor, vec3(1.0), sMinor * 0.08);
+      sColor = mix(sColor, vec3(1.0), sMajor * 0.15);
+      blurColor += sColor;
     }
+    blurColor /= 8.0;
     
-    // Floating ambient metaballs
-    for (float i = 0.0; i < 4.0; i++) {
-      float t = time * 0.3 + i * 3.14159;
-      vec2 p = vec2(
-        0.5 + 0.3 * sin(t * 0.7 + i),
-        0.5 + 0.3 * cos(t * 0.5 + i * 2.0)
-      );
-      p = (p - 0.5) * aspect + 0.5;
-      float d = length(uv - p);
-      metaball += 0.02 / (d + 0.01);
-    }
+    // Frosted glass overlay
+    vec3 frostedColor = mix(blurColor, glassTint, glassInfluence * 0.4);
     
-    // Threshold and smooth the metaballs
-    float threshold = 1.0;
-    float glow = smoothstep(threshold - 0.5, threshold + 0.5, metaball);
-    float softGlow = smoothstep(0.3, 2.0, metaball);
+    // Specular highlights (caustics)
+    float caustic1 = snoise(uvAspect * 10.0 + time * 0.3) * 0.5 + 0.5;
+    float caustic2 = snoise(uvAspect * 15.0 - time * 0.2 + vec2(7.0)) * 0.5 + 0.5;
+    float caustics = pow(caustic1 * caustic2, 2.5) * glassInfluence;
     
-    // Create iridescent color based on position and metaball intensity
-    float colorShift = metaball * 0.1 + time * 0.2;
-    colorShift += length(uv - mouse) * 0.5;
-    colorShift += noise(uv * 3.0 + time * 0.5) * 0.3;
+    // Edge highlight (fresnel-like)
+    float edgeDist = abs(dist - glassRadius * 0.9);
+    float edge = smoothstep(0.02, 0.0, edgeDist) * softEdge;
     
-    vec3 iridescent = palette(colorShift);
+    // Inner glow
+    float innerGlow = smoothstep(glassRadius, 0.0, dist) * 0.3;
     
-    // Add extra shimmer
-    float shimmer = noise(uv * 10.0 + time * 2.0) * 0.3 + 0.7;
-    iridescent *= shimmer;
+    // Rainbow refraction at edges
+    vec3 rainbow;
+    float rainbowAngle = atan(uvAspect.y - mouseAspect.y, uvAspect.x - mouseAspect.x);
+    rainbow.r = sin(rainbowAngle * 2.0 + time) * 0.5 + 0.5;
+    rainbow.g = sin(rainbowAngle * 2.0 + time + 2.094) * 0.5 + 0.5;
+    rainbow.b = sin(rainbowAngle * 2.0 + time + 4.188) * 0.5 + 0.5;
     
-    // Base color (transparent/subtle blue to match blueprint)
-    vec3 baseColor = vec3(0.0, 0.15, 0.35);
+    // Compose glass effect
+    vec3 glassColor = frostedColor;
+    glassColor += glassHighlight * caustics * 0.3;
+    glassColor += glassHighlight * edge * 0.4;
+    glassColor += glassTint * innerGlow;
+    glassColor += rainbow * edge * 0.15;
     
-    // Blend metaball glow
-    vec3 glowColor = iridescent * glow;
-    vec3 softGlowColor = iridescent * softGlow * 0.15;
+    // Final composition
+    vec3 finalColor = mix(gridColor, glassColor, glassInfluence * 0.85);
     
-    // Final color
-    vec3 finalColor = baseColor * 0.3;
-    finalColor += softGlowColor;
-    finalColor += glowColor * 1.5;
+    // Ambient glow around glass
+    float ambientGlow = softEdge * 0.1;
+    finalColor += glassTint * ambientGlow * (1.0 - glassInfluence);
     
-    // Add bright core
-    float core = smoothstep(threshold + 1.0, threshold + 2.0, metaball);
-    finalColor += vec3(1.0) * core * 0.8;
-    
-    // Subtle vignette
-    float vignette = 1.0 - length(v_uv - 0.5) * 0.5;
-    finalColor *= vignette;
-    
-    // Alpha based on glow intensity
-    float alpha = softGlow * 0.6 + glow * 0.4;
-    alpha = clamp(alpha, 0.0, 0.9);
+    // Output with alpha for blending
+    float alpha = max(glassInfluence * 0.9, softEdge * 0.2);
     
     gl_FragColor = vec4(finalColor, alpha);
   }
@@ -193,6 +240,9 @@ export function ShaderBackground() {
       return
     }
 
+    // Enable extension for better derivatives
+    gl.getExtension('OES_standard_derivatives')
+
     // Create shaders
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
@@ -205,15 +255,11 @@ export function ShaderBackground() {
     const positionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1,
-       1, -1,
-      -1,  1,
-      -1,  1,
-       1, -1,
-       1,  1,
+      -1, -1,  1, -1,  -1,  1,
+      -1,  1,  1, -1,   1,  1,
     ]), gl.STATIC_DRAW)
 
-    // Get attribute/uniform locations
+    // Get locations
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
     const mouseLocation = gl.getUniformLocation(program, 'u_mouse')
@@ -221,7 +267,7 @@ export function ShaderBackground() {
 
     // Handle resize
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2) // Cap at 2x for performance
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = window.innerWidth * dpr
       canvas.height = window.innerHeight * dpr
       canvas.style.width = `${window.innerWidth}px`
@@ -231,17 +277,17 @@ export function ShaderBackground() {
     resize()
     window.addEventListener('resize', resize)
 
-    // Handle mouse move with smooth interpolation
+    // Mouse tracking
     const handleMouseMove = (e: MouseEvent) => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
       targetMouseRef.current = {
         x: e.clientX * dpr,
-        y: (window.innerHeight - e.clientY) * dpr // Flip Y for WebGL
+        y: (window.innerHeight - e.clientY) * dpr
       }
     }
     window.addEventListener('mousemove', handleMouseMove)
 
-    // Handle touch
+    // Touch tracking
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
         const touch = e.touches[0]
@@ -254,20 +300,17 @@ export function ShaderBackground() {
     }
     window.addEventListener('touchmove', handleTouchMove)
 
-    // Initialize mouse position to center
-    mouseRef.current = {
-      x: canvas.width / 2,
-      y: canvas.height / 2
-    }
+    // Initialize mouse to center
+    mouseRef.current = { x: canvas.width / 2, y: canvas.height / 2 }
     targetMouseRef.current = { ...mouseRef.current }
 
-    // Animation loop
+    // Render loop
     const startTime = performance.now()
     const render = () => {
       const time = (performance.now() - startTime) / 1000
 
-      // Smooth mouse interpolation (easing)
-      const ease = 0.08
+      // Smooth mouse easing (liquid feel)
+      const ease = 0.1
       mouseRef.current.x += (targetMouseRef.current.x - mouseRef.current.x) * ease
       mouseRef.current.y += (targetMouseRef.current.y - mouseRef.current.y) * ease
 
@@ -275,29 +318,23 @@ export function ShaderBackground() {
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       gl.useProgram(program)
-
-      // Enable blending for transparency
       gl.enable(gl.BLEND)
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-      // Set uniforms
       gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
       gl.uniform2f(mouseLocation, mouseRef.current.x, mouseRef.current.y)
       gl.uniform1f(timeLocation, time)
 
-      // Set up position attribute
       gl.enableVertexAttribArray(positionLocation)
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
       gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
 
-      // Draw
       gl.drawArrays(gl.TRIANGLES, 0, 6)
 
       animationRef.current = requestAnimationFrame(render)
     }
     render()
 
-    // Cleanup
     return () => {
       window.removeEventListener('resize', resize)
       window.removeEventListener('mousemove', handleMouseMove)
