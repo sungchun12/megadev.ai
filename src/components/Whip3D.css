@@ -5,7 +5,10 @@
   cursor: grab;
   position: relative;
   z-index: 10;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, 
+              width 0.3s ease, 
+              height 0.3s ease,
+              max-width 0.3s ease;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -16,7 +19,29 @@
 
 .whip-3d-container.whipping {
   cursor: grabbing;
-  transform: scale(1.05);
+  transform: none;
+  /* Expand to full viewport */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none;
+  z-index: 9999;
+  pointer-events: none; /* Allow clicks to pass through except for canvas */
+}
+
+.whip-3d-container.whipping canvas {
+  pointer-events: auto; /* Canvas still captures pointer events */
+}
+
+/* When whipping, show grab cursor across entire page */
+body:has(.whip-3d-container.whipping) {
+  cursor: grabbing !important;
+}
+
+body:has(.whip-3d-container.whipping) * {
+  cursor: grabbing !important;
 }
 
 .whip-3d-container canvas {

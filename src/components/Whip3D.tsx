@@ -1,5 +1,5 @@
 import { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 import './Whip3D.css'
@@ -13,6 +13,8 @@ interface WhipState {
   targetY: number
   returnProgress: number
   velocity: { x: number; y: number }
+  sceneOffsetX: number
+  sceneOffsetY: number
 }
 
 // Custom glowing material
@@ -272,10 +274,12 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
 // Main whip assembly
 function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   const groupRef = useRef<THREE.Group>(null)
+  const offsetGroupRef = useRef<THREE.Group>(null)
   const segmentCount = 30
+  const currentOffset = useRef({ x: 0, y: 0 })
   
   useFrame((state) => {
-    if (!groupRef.current) return
+    if (!groupRef.current || !offsetGroupRef.current) return
     const time = state.clock.elapsedTime
     const ws = whipState.current
     
@@ -284,6 +288,19 @@ function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
       ws.returnProgress = Math.min(1, ws.returnProgress + 0.02)
     }
     
+    // Smoothly animate scene offset when dragging
+    if (ws.isDragging) {
+      currentOffset.current.x += (ws.sceneOffsetX - currentOffset.current.x) * 0.15
+      currentOffset.current.y += (ws.sceneOffsetY - currentOffset.current.y) * 0.15
+    } else {
+      // Return to center when not dragging
+      currentOffset.current.x += (0 - currentOffset.current.x) * 0.08
+      currentOffset.current.y += (0 - currentOffset.current.y) * 0.08
+    }
+    
+    offsetGroupRef.current.position.x = currentOffset.current.x
+    offsetGroupRef.current.position.y = currentOffset.current.y
+    
     // Gentle overall sway (reduced when dragging)
     const swayAmount = ws.isDragging ? 0.01 : 0.04
     groupRef.current.rotation.x = Math.sin(time * 0.25) * swayAmount
@@ -291,30 +308,34 @@ function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   })
 
   return (
-    <group ref={groupRef}>
-      <Float
-        speed={1.5}
-        rotationIntensity={whipState.current.isDragging ? 0.05 : 0.15}
-        floatIntensity={whipState.current.isDragging ? 0.1 : 0.25}
-      >
-        {Array.from({ length: segmentCount }).map((_, i) => (
-          <WhipSegment
-            key={i}
-            index={i}
-            total={segmentCount}
-            whipState={whipState}
-          />
-        ))}
-        <WhipTip whipState={whipState} />
-      </Float>
+    <group ref={offsetGroupRef}>
+      <group ref={groupRef}>
+        <Float
+          speed={1.5}
+          rotationIntensity={whipState.current.isDragging ? 0.05 : 0.15}
+          floatIntensity={whipState.current.isDragging ? 0.1 : 0.25}
+        >
+          {Array.from({ length: segmentCount }).map((_, i) => (
+            <WhipSegment
+              key={i}
+              index={i}
+              total={segmentCount}
+              whipState={whipState}
+            />
+          ))}
+          <WhipTip whipState={whipState} />
+        </Float>
+      </group>
     </group>
   )
 }
 
 // Ambient glow particles
 function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+  const groupRef = useRef<THREE.Group>(null)
   const particlesRef = useRef<THREE.Points>(null)
   const count = 40
+  const currentOffset = useRef({ x: 0, y: 0 })
   
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3)
@@ -329,9 +350,21 @@ function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipSt
   }, [])
 
   useFrame((state) => {
-    if (!particlesRef.current) return
+    if (!particlesRef.current || !groupRef.current) return
     const time = state.clock.elapsedTime
     const ws = whipState.current
+    
+    // Match the whip's offset position
+    if (ws.isDragging) {
+      currentOffset.current.x += (ws.sceneOffsetX - currentOffset.current.x) * 0.15
+      currentOffset.current.y += (ws.sceneOffsetY - currentOffset.current.y) * 0.15
+    } else {
+      currentOffset.current.x += (0 - currentOffset.current.x) * 0.08
+      currentOffset.current.y += (0 - currentOffset.current.y) * 0.08
+    }
+    
+    groupRef.current.position.x = currentOffset.current.x
+    groupRef.current.position.y = currentOffset.current.y
     
     // Particles react to dragging
     const rotationSpeed = ws.isDragging ? 0.15 : 0.08
@@ -340,53 +373,42 @@ function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipSt
   })
 
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={count}
-          array={positions}
-          itemSize={3}
+    <group ref={groupRef}>
+      <points ref={particlesRef}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={count}
+            array={positions}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={0.04}
+          color="#00D4FF"
+          transparent
+          opacity={0.7}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.04}
-        color="#00D4FF"
-        transparent
-        opacity={0.7}
-        blending={THREE.AdditiveBlending}
-        depthWrite={false}
-      />
-    </points>
+      </points>
+    </group>
   )
 }
 
-// Mouse tracker component
-function MouseTracker({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
-  const { viewport } = useThree()
-  const lastMouse = useRef({ x: 0, y: 0 })
-  
-  useFrame(({ pointer }) => {
+// Velocity decay component (mouse tracking is now handled globally)
+function VelocityDecay({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+  useFrame(() => {
     const ws = whipState.current
     
-    if (ws.isDragging) {
-      // Convert pointer to normalized coordinates (-1 to 1)
-      const newX = pointer.x
-      const newY = pointer.y
-      
-      // Calculate velocity
-      ws.velocity.x = (newX - lastMouse.current.x) * 10
-      ws.velocity.y = (newY - lastMouse.current.y) * 10
-      
-      // Smooth target following
-      ws.targetX += (newX - ws.targetX) * 0.3
-      ws.targetY += (newY - ws.targetY) * 0.3
-      
-      lastMouse.current = { x: newX, y: newY }
-    } else {
+    if (!ws.isDragging) {
       // Decay velocity when not dragging
-      ws.velocity.x *= 0.95
-      ws.velocity.y *= 0.95
+      ws.velocity.x *= 0.92
+      ws.velocity.y *= 0.92
+      
+      // Decay target position back toward center
+      ws.targetX *= 0.98
+      ws.targetY *= 0.98
     }
   })
   
@@ -412,7 +434,7 @@ function Scene({ whipState }: { whipState: React.MutableRefObject<WhipState> }) 
       <pointLight position={[-3, 2, 2]} intensity={1.5} color="#00D4FF" distance={10} />
       <pointLight position={[3, -2, 1]} intensity={1} color="#4DA6FF" distance={8} />
       
-      <MouseTracker whipState={whipState} />
+      <VelocityDecay whipState={whipState} />
       <Whip whipState={whipState} />
       <GlowParticles whipState={whipState} />
     </>
@@ -429,28 +451,95 @@ export function Whip3D() {
     targetY: 0,
     returnProgress: 1,
     velocity: { x: 0, y: 0 },
+    sceneOffsetX: 0,
+    sceneOffsetY: 0,
   })
   
+  const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const lastMousePos = useRef({ x: 0, y: 0 })
+  const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
+  
+  // Convert page coordinates to normalized coordinates relative to original container center
+  const pageToNormalized = useCallback((pageX: number, pageY: number) => {
+    const centerX = originalCenter.current.x
+    const centerY = originalCenter.current.y
+    
+    // Calculate distance from original center, normalized but allowing values beyond -1 to 1
+    // Use viewport dimensions for larger range
+    const x = (pageX - centerX) / (window.innerWidth / 3)
+    const y = -(pageY - centerY) / (window.innerHeight / 3) // Invert Y for 3D coords
+    
+    return { x, y }
+  }, [])
   
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
+    
+    // Store original center position before expanding to full viewport
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      originalCenter.current = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      }
+      
+      // Calculate scene offset to keep whip at original visual position
+      // Convert pixel offset to 3D world units (approximate based on camera FOV and distance)
+      const viewportCenterX = window.innerWidth / 2
+      const viewportCenterY = window.innerHeight / 2
+      const pixelOffsetX = originalCenter.current.x - viewportCenterX
+      const pixelOffsetY = originalCenter.current.y - viewportCenterY
+      
+      // Convert to 3D units (camera is at z=4.5 with fov=50)
+      // At z=4.5 with fov=50, viewport height ≈ 4.2 units
+      const unitsPerPixel = 4.2 / window.innerHeight
+      whipState.current.sceneOffsetX = pixelOffsetX * unitsPerPixel
+      whipState.current.sceneOffsetY = -pixelOffsetY * unitsPerPixel // Invert Y
+    }
+    
+    const normalized = pageToNormalized(e.pageX, e.pageY)
+    lastMousePos.current = normalized
+    whipState.current.targetX = normalized.x
+    whipState.current.targetY = normalized.y
     whipState.current.isDragging = true
     whipState.current.returnProgress = 0
     setIsDragging(true)
-  }, [])
+  }, [pageToNormalized])
   
-  const handlePointerUp = useCallback(() => {
-    whipState.current.isDragging = false
-    whipState.current.returnProgress = 0
-    setIsDragging(false)
-  }, [])
-  
-  const handlePointerLeave = useCallback(() => {
-    whipState.current.isDragging = false
-    whipState.current.returnProgress = 0
-    setIsDragging(false)
-  }, [])
+  // Global pointer move handler - works across the entire page
+  useEffect(() => {
+    if (!isDragging) return
+    
+    const handleGlobalPointerMove = (e: PointerEvent) => {
+      const normalized = pageToNormalized(e.pageX, e.pageY)
+      
+      // Calculate velocity
+      whipState.current.velocity.x = (normalized.x - lastMousePos.current.x) * 15
+      whipState.current.velocity.y = (normalized.y - lastMousePos.current.y) * 15
+      
+      // Update target
+      whipState.current.targetX = normalized.x
+      whipState.current.targetY = normalized.y
+      
+      lastMousePos.current = normalized
+    }
+    
+    const handleGlobalPointerUp = () => {
+      whipState.current.isDragging = false
+      whipState.current.returnProgress = 0
+      setIsDragging(false)
+    }
+    
+    // Add global listeners
+    window.addEventListener('pointermove', handleGlobalPointerMove)
+    window.addEventListener('pointerup', handleGlobalPointerUp)
+    
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalPointerMove)
+      window.removeEventListener('pointerup', handleGlobalPointerUp)
+    }
+  }, [isDragging, pageToNormalized])
   
   // Handle escape key to cancel drag
   useEffect(() => {
@@ -468,10 +557,9 @@ export function Whip3D() {
   
   return (
     <div 
+      ref={containerRef}
       className={`whip-3d-container ${isDragging ? 'whipping' : ''}`}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerLeave}
       aria-label="Hold and drag to whip"
     >
       <Canvas
