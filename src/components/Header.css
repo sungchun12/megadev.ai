@@ -5,29 +5,39 @@
 
 .header-title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: clamp(2.5rem, 10vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
   margin: 0;
   line-height: 1;
-  text-transform: lowercase;
+  text-transform: uppercase;
+  
+  /* Italic slant like Mega Man Zero logo */
+  font-style: italic;
+  transform: skewX(-5deg);
 }
 
 .header-title-main {
-  color: var(--color-text-primary);
+  /* Clean white */
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
 }
 
 .header-title-domain {
-  color: var(--color-accent-glow);
+  /* Bright cyan */
+  color: #00D4FF;
+  -webkit-text-fill-color: #00D4FF;
 }
 
 .header-tagline {
-  margin-top: var(--spacing-sm);
-  font-family: var(--font-mono);
-  font-size: clamp(0.75rem, 2vw, 1rem);
+  margin-top: var(--spacing-md);
+  font-family: var(--font-body);
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  font-weight: 600;
   color: var(--color-text-secondary);
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  font-style: italic;
 }
 
 .header-tagline-text {
@@ -38,7 +48,7 @@
 .header-tagline-text::before,
 .header-tagline-text::after {
   content: '//';
-  color: var(--color-line-annotation);
+  color: var(--color-accent-glow);
   margin: 0 var(--spacing-sm);
+  opacity: 0.7;
 }
-

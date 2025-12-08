@@ -18,11 +18,11 @@
   --color-accent-glow: #00D4FF;
   --color-accent-highlight: #4DA6FF;
   
-  /* Typography - Super Modern */
-  --font-display: 'Syne', system-ui, sans-serif;
-  --font-body: 'Outfit', system-ui, sans-serif;
+  /* Typography - Mega Man Zero Style */
+  --font-display: 'Orbitron', 'Audiowide', system-ui, sans-serif;
+  --font-body: 'Exo 2', system-ui, sans-serif;
   --font-mono: 'Space Mono', monospace;
-  --font-label: 'Outfit', sans-serif;
+  --font-label: 'Exo 2', sans-serif;
   
   /* Spacing */
   --spacing-xs: 0.25rem;
