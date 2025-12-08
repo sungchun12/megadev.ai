@@ -1,5 +1,6 @@
 import { BlueprintBackground } from './components/BlueprintBackground'
 import { BlueprintCoordinates } from './components/BlueprintCoordinates'
+import { ShaderBackground } from './components/ShaderBackground'
 import { Header } from './components/Header'
 import './App.css'
 
@@ -7,6 +8,7 @@ function App() {
   return (
     <main className="app">
       <BlueprintBackground />
+      <ShaderBackground />
       <BlueprintCoordinates />
       
       <div className="app-content">
