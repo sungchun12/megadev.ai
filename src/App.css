@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  isolation: isolate; /* Create stacking context */
 }
 
 .app-content {
@@ -15,6 +17,8 @@
   width: 100%;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
+  position: relative;
+  z-index: 2; /* Above ShaderBackground (z-index: 1) */
 }
 
 /* Hero Container */

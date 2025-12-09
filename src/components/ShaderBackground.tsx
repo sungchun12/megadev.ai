@@ -13,6 +13,7 @@ const vertexShaderSource = `
 `
 
 // Fragment shader - Apple-style liquid glass effect on blueprint
+// Optimized: reduced blur samples from 8 to 4
 const fragmentShaderSource = `
   #extension GL_OES_standard_derivatives : enable
   precision highp float;
@@ -99,13 +100,18 @@ const fragmentShaderSource = `
     float glassInfluence = smoothstep(glassRadius, 0.0, dist);
     float softEdge = smoothstep(glassRadius * 1.3, glassRadius * 0.5, dist);
     
+    // Early exit for pixels far outside effect area
+    if (glassInfluence < 0.001 && softEdge < 0.001) {
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+      return;
+    }
+    
     // Apply liquid distortion to UV
     vec2 distortion = liquidDistort(uvAspect, mouseAspect, glassRadius, time);
     vec2 distortedUV = uv + distortion;
     
     // Blueprint colors
     vec3 blueprintBase = vec3(0.0, 0.278, 0.671); // #0047AB
-    vec3 blueprintLight = vec3(0.0, 0.35, 0.8);
     
     // Grid pattern - normal and distorted
     float minorGridNormal = grid(uv, 50.0);
@@ -128,11 +134,11 @@ const fragmentShaderSource = `
     vec3 glassTint = vec3(0.85, 0.9, 1.0);
     vec3 glassHighlight = vec3(1.0, 1.0, 1.0);
     
-    // Frosted blur effect (sample nearby grid)
+    // Optimized frosted blur effect - reduced from 8 to 4 samples
     vec3 blurColor = vec3(0.0);
     float blurRadius = glassInfluence * 0.015;
-    for (float i = 0.0; i < 8.0; i++) {
-      float angle = i * PI * 0.25;
+    for (float i = 0.0; i < 4.0; i++) {
+      float angle = i * PI * 0.5;
       vec2 offset = vec2(cos(angle), sin(angle)) * blurRadius;
       vec2 sampleUV = distortedUV + offset;
       float sMinor = grid(sampleUV, 50.0);
@@ -142,7 +148,7 @@ const fragmentShaderSource = `
       sColor = mix(sColor, vec3(1.0), sMajor * 0.15);
       blurColor += sColor;
     }
-    blurColor /= 8.0;
+    blurColor /= 4.0;
     
     // Frosted glass overlay
     vec3 frostedColor = mix(blurColor, glassTint, glassInfluence * 0.4);
@@ -173,14 +179,14 @@ const fragmentShaderSource = `
     glassColor += glassTint * innerGlow;
     glassColor += rainbow * edge * 0.15;
     
-    // Final composition
+    // Final composition - blend grid with glass effect
     vec3 finalColor = mix(gridColor, glassColor, glassInfluence * 0.85);
     
     // Ambient glow around glass
     float ambientGlow = softEdge * 0.1;
     finalColor += glassTint * ambientGlow * (1.0 - glassInfluence);
     
-    // Output with alpha for blending
+    // Output with alpha for blending - only visible in effect area
     float alpha = max(glassInfluence * 0.9, softEdge * 0.2);
     
     gl_FragColor = vec4(finalColor, alpha);
@@ -220,20 +226,35 @@ function createProgram(gl: WebGLRenderingContext, vertexShader: WebGLShader, fra
   return program
 }
 
+// Check if user prefers reduced motion
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+// Check if device is mobile for lower DPR
+function isMobileDevice(): boolean {
+  return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
 export function ShaderBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
   const targetMouseRef = useRef({ x: 0, y: 0 })
   const animationRef = useRef<number>(0)
+  const lastFrameTime = useRef<number>(0)
 
   useEffect(() => {
+    // Skip animation if user prefers reduced motion
+    const reducedMotion = prefersReducedMotion()
+    
     const canvas = canvasRef.current
     if (!canvas) return
 
     const gl = canvas.getContext('webgl', { 
       alpha: true,
       premultipliedAlpha: false,
-      antialias: true
+      antialias: false, // Disable antialiasing for performance
+      powerPreference: 'low-power' // Prefer battery life on mobile
     })
     if (!gl) {
       console.error('WebGL not supported')
@@ -265,9 +286,11 @@ export function ShaderBackground() {
     const mouseLocation = gl.getUniformLocation(program, 'u_mouse')
     const timeLocation = gl.getUniformLocation(program, 'u_time')
 
-    // Handle resize
+    // Handle resize with optimized DPR
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      // Use lower DPR on mobile for performance (max 1.5 on mobile, 2 on desktop)
+      const maxDpr = isMobileDevice() ? 1.5 : 2
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
       canvas.width = window.innerWidth * dpr
       canvas.height = window.innerHeight * dpr
       canvas.style.width = `${window.innerWidth}px`
@@ -279,7 +302,8 @@ export function ShaderBackground() {
 
     // Mouse tracking
     const handleMouseMove = (e: MouseEvent) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const maxDpr = isMobileDevice() ? 1.5 : 2
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
       targetMouseRef.current = {
         x: e.clientX * dpr,
         y: (window.innerHeight - e.clientY) * dpr
@@ -291,7 +315,8 @@ export function ShaderBackground() {
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
         const touch = e.touches[0]
-        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+        const maxDpr = isMobileDevice() ? 1.5 : 2
+        const dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
         targetMouseRef.current = {
           x: touch.clientX * dpr,
           y: (window.innerHeight - touch.clientY) * dpr
@@ -304,13 +329,24 @@ export function ShaderBackground() {
     mouseRef.current = { x: canvas.width / 2, y: canvas.height / 2 }
     targetMouseRef.current = { ...mouseRef.current }
 
-    // Render loop
-    const startTime = performance.now()
-    const render = () => {
-      const time = (performance.now() - startTime) / 1000
+    // Frame rate control - full 60fps for smooth tracking
+    const targetFrameInterval = reducedMotion ? 100 : 0 // No throttling for responsive mouse tracking
 
-      // Smooth mouse easing (liquid feel)
-      const ease = 0.1
+    // Render loop with frame rate throttling
+    const startTime = performance.now()
+    const render = (currentTime: number) => {
+      // Throttle frame rate
+      const elapsed = currentTime - lastFrameTime.current
+      if (elapsed < targetFrameInterval) {
+        animationRef.current = requestAnimationFrame(render)
+        return
+      }
+      lastFrameTime.current = currentTime - (elapsed % targetFrameInterval)
+
+      const time = (currentTime - startTime) / 1000
+
+      // Smooth mouse easing (liquid feel) - higher = snappier
+      const ease = 0.8
       mouseRef.current.x += (targetMouseRef.current.x - mouseRef.current.x) * ease
       mouseRef.current.y += (targetMouseRef.current.y - mouseRef.current.y) * ease
 
@@ -323,7 +359,7 @@ export function ShaderBackground() {
 
       gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
       gl.uniform2f(mouseLocation, mouseRef.current.x, mouseRef.current.y)
-      gl.uniform1f(timeLocation, time)
+      gl.uniform1f(timeLocation, reducedMotion ? 0 : time) // Stop time if reduced motion
 
       gl.enableVertexAttribArray(positionLocation)
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
@@ -333,7 +369,7 @@ export function ShaderBackground() {
 
       animationRef.current = requestAnimationFrame(render)
     }
-    render()
+    animationRef.current = requestAnimationFrame(render)
 
     return () => {
       window.removeEventListener('resize', resize)

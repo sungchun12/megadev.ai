@@ -4,6 +4,26 @@ import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 import './Whip3D.css'
 
+// Performance detection utilities
+const isMobileDevice = (): boolean => {
+  return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+// Get optimized segment count based on device
+const getSegmentCount = (): number => {
+  return isMobileDevice() ? 20 : 30
+}
+
+// Get optimized particle count based on device
+const getParticleCount = (): number => {
+  return isMobileDevice() ? 25 : 40
+}
+
+// Get capped DPR (max 1.5 for performance)
+const getCappedDpr = (): number => {
+  return Math.min(window.devicePixelRatio || 1, 1.5)
+}
+
 // Shared state for mouse interaction
 interface WhipState {
   isDragging: boolean
@@ -78,6 +98,9 @@ function WhipSegment({
   const idlePosition = useRef({ x: 0, y: 0, z: 0 })
   const currentOffset = useRef({ x: 0, y: 0 })
   
+  // Reduce bevel segments on mobile for performance
+  const bevelSegments = isMobileDevice() ? 1 : 2
+  
   const geometry = useMemo(() => {
     const shape = new THREE.Shape()
     const size = 0.18 - progress * 0.06
@@ -93,11 +116,11 @@ function WhipSegment({
       bevelEnabled: true,
       bevelThickness: 0.015,
       bevelSize: 0.015,
-      bevelSegments: 2,
+      bevelSegments,
     }
     
     return new THREE.ExtrudeGeometry(shape, extrudeSettings)
-  }, [progress])
+  }, [progress, bevelSegments])
 
   useFrame((state) => {
     if (!meshRef.current) return
@@ -189,10 +212,13 @@ function WhipSegment({
 }
 
 // Whip tip - larger arrow head
-function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+function WhipTip({ whipState, segmentCount }: { whipState: React.MutableRefObject<WhipState>; segmentCount: number }) {
   const meshRef = useRef<THREE.Mesh>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(createGlowMaterial())
   const currentOffset = useRef({ x: 0, y: 0 })
+  
+  // Reduce bevel segments on mobile
+  const bevelSegments = isMobileDevice() ? 2 : 3
   
   const geometry = useMemo(() => {
     const shape = new THREE.Shape()
@@ -209,11 +235,11 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
       bevelEnabled: true,
       bevelThickness: 0.025,
       bevelSize: 0.025,
-      bevelSegments: 3,
+      bevelSegments,
     }
     
     return new THREE.ExtrudeGeometry(shape, extrudeSettings)
-  }, [])
+  }, [bevelSegments])
 
   useFrame((state) => {
     if (!meshRef.current) return
@@ -228,7 +254,7 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
     }
     
     const progress = 1
-    const waveOffset = 30 * 0.25
+    const waveOffset = segmentCount * 0.25
     const wave1 = Math.sin(time * 1.8 + waveOffset) * 0.12
     
     const angle = progress * Math.PI * 2.2 + time * 0.4
@@ -236,7 +262,7 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
     
     const idleX = Math.cos(angle) * radius + Math.cos(time * 1.3 + 7) * 0.08
     const idleY = Math.sin(angle) * radius * 0.7 + Math.sin(time * 0.9 + 10) * 0.06 - 0.3
-    const idleZ = progress * 0.3 + Math.sin(time * 0.7 + 30 * 0.15) * 0.08 + 0.15
+    const idleZ = progress * 0.3 + Math.sin(time * 0.7 + segmentCount * 0.15) * 0.08 + 0.15
     
     // Tip has maximum drag influence
     const dragInfluence = 1.0
@@ -286,10 +312,9 @@ function WhipTip({ whipState }: { whipState: React.MutableRefObject<WhipState> }
 }
 
 // Main whip assembly
-function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+function Whip({ whipState, segmentCount }: { whipState: React.MutableRefObject<WhipState>; segmentCount: number }) {
   const groupRef = useRef<THREE.Group>(null)
   const offsetGroupRef = useRef<THREE.Group>(null)
-  const segmentCount = 30
   const currentOffset = useRef({ x: 0, y: 0 })
   
   useFrame((state) => {
@@ -337,7 +362,7 @@ function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
               whipState={whipState}
             />
           ))}
-          <WhipTip whipState={whipState} />
+          <WhipTip whipState={whipState} segmentCount={segmentCount} />
         </Float>
       </group>
     </group>
@@ -345,23 +370,22 @@ function Whip({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
 }
 
 // Ambient glow particles
-function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+function GlowParticles({ whipState, particleCount }: { whipState: React.MutableRefObject<WhipState>; particleCount: number }) {
   const groupRef = useRef<THREE.Group>(null)
   const particlesRef = useRef<THREE.Points>(null)
-  const count = 40
   const currentOffset = useRef({ x: 0, y: 0 })
   
   const positions = useMemo(() => {
-    const pos = new Float32Array(count * 3)
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 * 2.2
-      const radius = 1.2 + (i / count) * 1.0
+    const pos = new Float32Array(particleCount * 3)
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2 * 2.2
+      const radius = 1.2 + (i / particleCount) * 1.0
       pos[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 0.4
       pos[i * 3 + 1] = Math.sin(angle) * radius * 0.7 + (Math.random() - 0.5) * 0.4
-      pos[i * 3 + 2] = (i / count) * 0.3 + (Math.random() - 0.5) * 0.2
+      pos[i * 3 + 2] = (i / particleCount) * 0.3 + (Math.random() - 0.5) * 0.2
     }
     return pos
-  }, [])
+  }, [particleCount])
 
   useFrame((state) => {
     if (!particlesRef.current || !groupRef.current) return
@@ -392,7 +416,7 @@ function GlowParticles({ whipState }: { whipState: React.MutableRefObject<WhipSt
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={count}
+            count={particleCount}
             array={positions}
             itemSize={3}
           />
@@ -439,8 +463,12 @@ function LoadingFallback() {
   )
 }
 
-// Scene setup
-function Scene({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+// Scene setup with optimized counts
+function Scene({ whipState, segmentCount, particleCount }: { 
+  whipState: React.MutableRefObject<WhipState>
+  segmentCount: number
+  particleCount: number
+}) {
   return (
     <>
       <ambientLight intensity={0.4} />
@@ -449,8 +477,8 @@ function Scene({ whipState }: { whipState: React.MutableRefObject<WhipState> }) 
       <pointLight position={[3, -2, 1]} intensity={1} color="#4DA6FF" distance={8} />
       
       <VelocityDecay whipState={whipState} />
-      <Whip whipState={whipState} />
-      <GlowParticles whipState={whipState} />
+      <Whip whipState={whipState} segmentCount={segmentCount} />
+      <GlowParticles whipState={whipState} particleCount={particleCount} />
     </>
   )
 }
@@ -473,6 +501,11 @@ export function Whip3D() {
   const [isDragging, setIsDragging] = useState(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
   const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
+  
+  // Get optimized counts on mount (stable values)
+  const segmentCount = useMemo(() => getSegmentCount(), [])
+  const particleCount = useMemo(() => getParticleCount(), [])
+  const dpr = useMemo(() => getCappedDpr(), [])
   
   // Convert page coordinates to normalized coordinates relative to original container center
   const pageToNormalized = useCallback((pageX: number, pageY: number) => {
@@ -578,15 +611,20 @@ export function Whip3D() {
     >
       <Canvas
         camera={{ position: [0, 0, 4.5], fov: 50 }}
+        dpr={dpr} // Capped DPR for performance
         gl={{ 
-          antialias: true,
+          antialias: !isMobileDevice(), // Disable antialiasing on mobile
           alpha: true,
           powerPreference: 'high-performance'
         }}
         style={{ background: 'transparent', touchAction: 'none' }}
       >
         <Suspense fallback={<LoadingFallback />}>
-          <Scene whipState={whipState} />
+          <Scene 
+            whipState={whipState} 
+            segmentCount={segmentCount}
+            particleCount={particleCount}
+          />
         </Suspense>
       </Canvas>
       

@@ -1,20 +1,45 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import './BlueprintCoordinates.css'
 
 export function BlueprintCoordinates() {
   const [coords, setCoords] = useState({ x: 0, y: 0 })
+  const lastUpdateTime = useRef(0)
+  const rafId = useRef<number | null>(null)
+  const pendingCoords = useRef({ x: 0, y: 0 })
+
+  // Throttled update function - updates at most every 100ms
+  const throttledUpdate = useCallback(() => {
+    const now = performance.now()
+    if (now - lastUpdateTime.current >= 100) {
+      setCoords(pendingCoords.current)
+      lastUpdateTime.current = now
+    }
+    rafId.current = null
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Normalize coordinates to 0-1 range based on viewport
-      const x = e.clientX / window.innerWidth
-      const y = e.clientY / window.innerHeight
-      setCoords({ x, y })
+      // Store pending coordinates
+      pendingCoords.current = {
+        x: e.clientX / window.innerWidth,
+        y: e.clientY / window.innerHeight,
+      }
+      
+      // Schedule throttled update if not already scheduled
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(throttledUpdate)
+      }
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current)
+      }
+    }
+  }, [throttledUpdate])
 
   return (
     <div className="coordinates" aria-hidden="true">
