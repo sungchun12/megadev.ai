@@ -233,7 +233,7 @@ export function BlueprintSketches() {
         {/* ============ ANNOTATION ARROWS ============ */}
         <g className="sketch-group" transform="translate(1400, 300)">
           <line className="sketch-line annotation" x1="0" y1="0" x2="80" y2="-40" />
-          <text className="sketch-text specs" x="85" y="-45">NOMINAL THIKC</text>
+          <text className="sketch-text specs" x="85" y="-45">NOMINAL THICK</text>
           <text className="sketch-text specs" x="85" y="-31">TENSOR COATED</text>
         </g>
 
