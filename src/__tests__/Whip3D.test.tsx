@@ -9,7 +9,7 @@ vi.mock('@react-three/fiber', () => ({
       {children}
     </div>
   ),
-  useFrame: vi.fn((callback) => {
+  useFrame: vi.fn((_callback) => {
     // Don't actually call the callback in tests
   }),
 }))

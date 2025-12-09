@@ -53,12 +53,12 @@ const mockWebGLContext = {
 
 beforeEach(() => {
   // Mock canvas getContext for WebGL
-  HTMLCanvasElement.prototype.getContext = vi.fn((type) => {
+  HTMLCanvasElement.prototype.getContext = vi.fn((type: string) => {
     if (type === 'webgl') {
       return mockWebGLContext as unknown as WebGLRenderingContext
     }
     return null
-  })
+  }) as typeof HTMLCanvasElement.prototype.getContext
 })
 
 describe('BlueprintBackground', () => {
