@@ -1,0 +1,60 @@
+# SPA Routing - Redirect all requests to index.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Don't rewrite files or directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Rewrite everything else to index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Enable Gzip/Brotli compression if pre-compressed files exist
+<IfModule mod_headers.c>
+  # Serve pre-compressed Brotli files if available
+  RewriteCond %{HTTP:Accept-Encoding} br
+  RewriteCond %{REQUEST_FILENAME}.br -f
+  RewriteRule ^(.*)$ $1.br [L]
+  
+  # Serve pre-compressed Gzip files if available
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{REQUEST_FILENAME}.gz -f
+  RewriteRule ^(.*)$ $1.gz [L]
+  
+  # Set correct content types and encoding headers
+  <FilesMatch "\.js\.br$">
+    Header set Content-Encoding br
+    Header set Content-Type application/javascript
+  </FilesMatch>
+  <FilesMatch "\.css\.br$">
+    Header set Content-Encoding br
+    Header set Content-Type text/css
+  </FilesMatch>
+  <FilesMatch "\.js\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type application/javascript
+  </FilesMatch>
+  <FilesMatch "\.css\.gz$">
+    Header set Content-Encoding gzip
+    Header set Content-Type text/css
+  </FilesMatch>
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Assets with hashes can be cached forever
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  
+  # HTML should revalidate
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
