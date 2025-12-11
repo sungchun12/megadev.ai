@@ -50,6 +50,101 @@ body:has(.whip-3d-container.whipping) * {
   touch-action: none;
 }
 
+/* Click + hold hint overlay - liquid glass effect */
+.click-hold-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+  
+  /* Liquid glass effect */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(0, 212, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  /* Glass border with gradient */
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: absolute;
+  
+  /* Outer glow */
+  box-shadow: 
+    0 8px 32px rgba(0, 212, 255, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Shiny border overlay */
+.click-hold-hint::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(0, 212, 255, 0.3) 60%,
+    rgba(0, 212, 255, 0.1) 100%
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Animated shimmer effect */
+.click-hold-hint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.click-hold-hint.visible {
+  opacity: 1;
+}
+
 /* Hint text when whipping */
 .whip-hint {
   position: absolute;
@@ -89,6 +184,17 @@ body:has(.whip-3d-container.whipping) * {
 @media (max-width: 480px) {
   .whip-3d-container {
     height: 300px;
+  }
+  
+  .click-hold-hint {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+  }
+  
+  .click-hold-hint::before,
+  .click-hold-hint::after {
+    border-radius: 12px;
   }
   
   .whip-hint {

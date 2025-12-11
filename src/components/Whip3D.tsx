@@ -499,6 +499,7 @@ export function Whip3D() {
   
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
   const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
   
@@ -602,11 +603,24 @@ export function Whip3D() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
   
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true)
+  }, [])
+  
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false)
+  }, [])
+  
+  // Show hint when hovering but not dragging
+  const showClickHint = isHovering && !isDragging
+  
   return (
     <div 
       ref={containerRef}
       className={`whip-3d-container ${isDragging ? 'whipping' : ''}`}
       onPointerDown={handlePointerDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       aria-label="Hold and drag to whip"
     >
       <Canvas
@@ -627,6 +641,10 @@ export function Whip3D() {
           />
         </Suspense>
       </Canvas>
+      
+      <div className={`click-hold-hint ${showClickHint ? 'visible' : ''}`}>
+        click + hold
+      </div>
       
       {isDragging && (
         <div className="whip-hint">Release to let go</div>
