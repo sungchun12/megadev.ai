@@ -27,6 +27,7 @@ const getCappedDpr = (): number => {
 // Shared state for mouse interaction
 interface WhipState {
   isDragging: boolean
+  isHovering: boolean
   mouseX: number
   mouseY: number
   targetX: number
@@ -131,8 +132,15 @@ function WhipSegment({
     // Update shader time and intensity
     if (materialRef.current.uniforms) {
       materialRef.current.uniforms.time.value = time
-      // Glow more intensely when being whipped
-      const targetIntensity = ws.isDragging ? 1.5 : 1.0
+      // Glow more intensely when being whipped, pulse when hovering
+      let targetIntensity = 1.0
+      if (ws.isDragging) {
+        targetIntensity = 1.5
+      } else if (ws.isHovering) {
+        // Pulse between 1.0 and 1.5 when hovering
+        const pulse = 0.5 * (Math.sin(time * 3) * 0.5 + 0.5) // 0 to 0.5
+        targetIntensity = 1.0 + pulse
+      }
       materialRef.current.uniforms.intensity.value += (targetIntensity - materialRef.current.uniforms.intensity.value) * 0.1
     }
     
@@ -249,7 +257,15 @@ function WhipTip({ whipState, segmentCount }: { whipState: React.MutableRefObjec
     
     if (materialRef.current.uniforms) {
       materialRef.current.uniforms.time.value = time
-      const targetIntensity = ws.isDragging ? 1.8 : 1.0
+      // Tip glows brighter - pulse when hovering, steady when dragging
+      let targetIntensity = 1.0
+      if (ws.isDragging) {
+        targetIntensity = 1.8
+      } else if (ws.isHovering) {
+        // Pulse between 1.0 and 1.8 when hovering (tip pulses more)
+        const pulse = 0.8 * (Math.sin(time * 3) * 0.5 + 0.5) // 0 to 0.8
+        targetIntensity = 1.0 + pulse
+      }
       materialRef.current.uniforms.intensity.value += (targetIntensity - materialRef.current.uniforms.intensity.value) * 0.1
     }
     
@@ -487,6 +503,7 @@ function Scene({ whipState, segmentCount, particleCount }: {
 export function Whip3D() {
   const whipState = useRef<WhipState>({
     isDragging: false,
+    isHovering: false,
     mouseX: 0,
     mouseY: 0,
     targetX: 0,
@@ -605,10 +622,12 @@ export function Whip3D() {
   
   const handleMouseEnter = useCallback(() => {
     setIsHovering(true)
+    whipState.current.isHovering = true
   }, [])
   
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false)
+    whipState.current.isHovering = false
   }, [])
   
   // Show hint when hovering but not dragging
