@@ -1,5 +1,5 @@
 import { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 import './Whip3D.css'
@@ -24,6 +24,17 @@ const getCappedDpr = (): number => {
   return Math.min(window.devicePixelRatio || 1, 1.5)
 }
 
+// Explosion particle data
+interface Explosion {
+  id: number
+  position: THREE.Vector3
+  startTime: number
+  particles: Float32Array
+  velocities: Float32Array
+  colors: Float32Array
+  sizes: Float32Array
+}
+
 // Shared state for mouse interaction
 interface WhipState {
   isDragging: boolean
@@ -36,6 +47,9 @@ interface WhipState {
   velocity: { x: number; y: number }
   sceneOffsetX: number
   sceneOffsetY: number
+  lastJabTime: number
+  explosions: Explosion[]
+  nextExplosionId: number
 }
 
 // Custom glowing material
@@ -450,6 +464,242 @@ function GlowParticles({ whipState, particleCount }: { whipState: React.MutableR
   )
 }
 
+// Single explosion particle system
+function ExplosionParticles({ 
+  explosion, 
+  onComplete 
+}: { 
+  explosion: Explosion
+  onComplete: (id: number) => void 
+}) {
+  const pointsRef = useRef<THREE.Points>(null)
+  const materialRef = useRef<THREE.ShaderMaterial>(null)
+  
+  const particleCount = explosion.particles.length / 3
+  
+  // Create shader material for sparkle effect
+  const shaderMaterial = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+      opacity: { value: 1.0 },
+    },
+    vertexShader: `
+      attribute float size;
+      attribute vec3 customColor;
+      varying vec3 vColor;
+      varying float vOpacity;
+      uniform float time;
+      uniform float opacity;
+      
+      void main() {
+        vColor = customColor;
+        vOpacity = opacity;
+        
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (350.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vOpacity;
+      
+      void main() {
+        // Create a soft sparkle shape
+        vec2 center = gl_PointCoord - vec2(0.5);
+        float dist = length(center);
+        
+        // Star/sparkle pattern
+        float angle = atan(center.y, center.x);
+        float rays = 0.5 + 0.5 * sin(angle * 4.0);
+        float star = smoothstep(0.5, 0.2, dist) * (0.7 + 0.3 * rays);
+        
+        // Core glow
+        float core = exp(-dist * 6.0);
+        
+        float alpha = (star + core) * vOpacity;
+        
+        if (alpha < 0.01) discard;
+        
+        vec3 finalColor = vColor + vec3(0.3) * core;
+        gl_FragColor = vec4(finalColor, alpha);
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }), [])
+
+  useFrame((state) => {
+    if (!pointsRef.current || !materialRef.current) return
+    
+    const elapsed = state.clock.elapsedTime - explosion.startTime
+    const duration = 1.0 // Explosion lasts 1 second
+    const progress = elapsed / duration
+    
+    if (progress >= 1) {
+      onComplete(explosion.id)
+      return
+    }
+    
+    // Update particle positions based on velocities
+    const positions = pointsRef.current.geometry.attributes.position.array as Float32Array
+    const sizes = pointsRef.current.geometry.attributes.size.array as Float32Array
+    
+    for (let i = 0; i < particleCount; i++) {
+      const idx = i * 3
+      // Apply velocity with easing (slow down over time)
+      const velocityScale = Math.pow(1 - progress, 2) * 0.02
+      positions[idx] += explosion.velocities[idx] * velocityScale
+      positions[idx + 1] += explosion.velocities[idx + 1] * velocityScale
+      positions[idx + 2] += explosion.velocities[idx + 2] * velocityScale
+      
+      // Shrink particles over time (but keep them visible longer)
+      sizes[i] = explosion.sizes[i] * (1 - progress * 0.5)
+    }
+    
+    pointsRef.current.geometry.attributes.position.needsUpdate = true
+    pointsRef.current.geometry.attributes.size.needsUpdate = true
+    
+    // Fade out more gradually
+    materialRef.current.uniforms.opacity.value = 1 - Math.pow(progress, 2)
+    materialRef.current.uniforms.time.value = elapsed
+  })
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={particleCount}
+          array={explosion.particles.slice()}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-customColor"
+          count={particleCount}
+          array={explosion.colors}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-size"
+          count={particleCount}
+          array={explosion.sizes.slice()}
+          itemSize={1}
+        />
+      </bufferGeometry>
+      <primitive object={shaderMaterial} ref={materialRef} attach="material" />
+    </points>
+  )
+}
+
+// Explosion manager - detects jabs and spawns explosions
+function ExplosionManager({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
+  const { clock } = useThree()
+  const [explosions, setExplosions] = useState<Explosion[]>([])
+  
+  // Jab detection threshold - lowered for easier triggering
+  const JAB_VELOCITY_THRESHOLD = 2.5
+  const JAB_COOLDOWN = 0.12 // Minimum time between explosions
+  
+  const createExplosion = useCallback((x: number, y: number) => {
+    const ws = whipState.current
+    const particleCount = isMobileDevice() ? 35 : 60
+    
+    const particles = new Float32Array(particleCount * 3)
+    const velocities = new Float32Array(particleCount * 3)
+    const colors = new Float32Array(particleCount * 3)
+    const sizes = new Float32Array(particleCount)
+    
+    // Colors for the explosion - cyan to white gradient
+    const colorPalette = [
+      new THREE.Color('#00D4FF'), // Cyan
+      new THREE.Color('#4DA6FF'), // Light blue
+      new THREE.Color('#FFFFFF'), // White
+      new THREE.Color('#00FFFF'), // Aqua
+      new THREE.Color('#80FFFF'), // Pale cyan
+    ]
+    
+    for (let i = 0; i < particleCount; i++) {
+      const idx = i * 3
+      
+      // Start at explosion center with slight random offset
+      particles[idx] = x + (Math.random() - 0.5) * 0.5
+      particles[idx + 1] = y + (Math.random() - 0.5) * 0.5
+      particles[idx + 2] = 1 + (Math.random() - 0.5) * 0.3
+      
+      // Radial velocity with some randomness - increased speed
+      const angle = Math.random() * Math.PI * 2
+      const speed = 3 + Math.random() * 6
+      const verticalBias = (Math.random() - 0.3) * 2
+      
+      velocities[idx] = Math.cos(angle) * speed
+      velocities[idx + 1] = Math.sin(angle) * speed + verticalBias
+      velocities[idx + 2] = (Math.random() - 0.5) * speed * 0.3
+      
+      // Random color from palette
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)]
+      colors[idx] = color.r
+      colors[idx + 1] = color.g
+      colors[idx + 2] = color.b
+      
+      // Larger sizes for visibility
+      sizes[i] = 0.25 + Math.random() * 0.4
+    }
+    
+    const explosion: Explosion = {
+      id: ws.nextExplosionId++,
+      position: new THREE.Vector3(x, y, 1),
+      startTime: clock.elapsedTime,
+      particles,
+      velocities,
+      colors,
+      sizes,
+    }
+    
+    setExplosions(prev => [...prev, explosion])
+  }, [clock, whipState])
+  
+  const removeExplosion = useCallback((id: number) => {
+    setExplosions(prev => prev.filter(e => e.id !== id))
+  }, [])
+  
+  useFrame(() => {
+    const ws = whipState.current
+    
+    if (ws.isDragging) {
+      // Calculate velocity magnitude
+      const velocityMag = Math.sqrt(ws.velocity.x ** 2 + ws.velocity.y ** 2)
+      const currentTime = clock.elapsedTime
+      
+      // Check for jab (sudden velocity spike)
+      if (velocityMag > JAB_VELOCITY_THRESHOLD && 
+          currentTime - ws.lastJabTime > JAB_COOLDOWN) {
+        
+        // Create explosion at approximate whip tip position
+        // Scale targetX/Y to match 3D world coordinates
+        const explosionX = ws.targetX * 1.5 + ws.sceneOffsetX
+        const explosionY = ws.targetY * 1.5 + ws.sceneOffsetY
+        
+        createExplosion(explosionX, explosionY)
+        ws.lastJabTime = currentTime
+      }
+    }
+  })
+  
+  return (
+    <>
+      {explosions.map(explosion => (
+        <ExplosionParticles
+          key={explosion.id}
+          explosion={explosion}
+          onComplete={removeExplosion}
+        />
+      ))}
+    </>
+  )
+}
+
 // Velocity decay component (mouse tracking is now handled globally)
 function VelocityDecay({ whipState }: { whipState: React.MutableRefObject<WhipState> }) {
   useFrame(() => {
@@ -495,6 +745,7 @@ function Scene({ whipState, segmentCount, particleCount }: {
       <VelocityDecay whipState={whipState} />
       <Whip whipState={whipState} segmentCount={segmentCount} />
       <GlowParticles whipState={whipState} particleCount={particleCount} />
+      <ExplosionManager whipState={whipState} />
     </>
   )
 }
@@ -512,6 +763,9 @@ export function Whip3D() {
     velocity: { x: 0, y: 0 },
     sceneOffsetX: 0,
     sceneOffsetY: 0,
+    lastJabTime: 0,
+    explosions: [],
+    nextExplosionId: 0,
   })
   
   const containerRef = useRef<HTMLDivElement>(null)
