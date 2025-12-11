@@ -68,6 +68,9 @@ body:has(.whip-3d-container.whipping) * {
   text-transform: lowercase;
   letter-spacing: 0.05em;
   
+  /* Clip shimmer to stay within box bounds */
+  overflow: hidden;
+  
   /* Liquid glass effect */
   background: linear-gradient(
     135deg,
@@ -145,7 +148,7 @@ body:has(.whip-3d-container.whipping) * {
   opacity: 1;
 }
 
-/* Hint text when whipping */
+/* Hint text when whipping - liquid glass effect */
 .whip-hint {
   position: absolute;
   bottom: 20px;
@@ -153,13 +156,79 @@ body:has(.whip-3d-container.whipping) * {
   transform: translateX(-50%);
   font-family: var(--font-mono, monospace);
   font-size: 0.75rem;
-  color: rgba(0, 212, 255, 0.8);
-  background: rgba(0, 71, 171, 0.8);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
   pointer-events: none;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
   animation: fadeIn 0.2s ease;
+  
+  /* Clip shimmer to stay within box bounds */
+  overflow: hidden;
+  
+  /* Liquid glass effect */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(0, 212, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  /* Glass border with gradient */
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  
+  /* Outer glow */
+  box-shadow: 
+    0 8px 32px rgba(0, 212, 255, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Shiny border overlay for whip hint */
+.whip-hint::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(0, 212, 255, 0.3) 60%,
+    rgba(0, 212, 255, 0.1) 100%
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Animated shimmer effect for whip hint */
+.whip-hint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes fadeIn {
@@ -198,8 +267,14 @@ body:has(.whip-3d-container.whipping) * {
   }
   
   .whip-hint {
-    font-size: 0.65rem;
-    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+  }
+  
+  .whip-hint::before,
+  .whip-hint::after {
+    border-radius: 12px;
   }
 }
 
