@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Blueprint background grid -->
+  <defs>
+    <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M 4 0 L 0 0 0 4" fill="none" stroke="#00D4FF" stroke-width="0.3" opacity="0.3"/>
+    </pattern>
+  </defs>
+  
+  <!-- Blueprint background -->
+  <rect width="64" height="64" fill="#286DC5"/>
+  <rect width="64" height="64" fill="url(#grid)"/>
+  
+  <!-- Bold italic "M" letter (leaning forward) -->
+  <g transform="skewX(-12)">
+    <path d="M 12 48
+             L 12 16
+             L 20 16
+             L 28 32
+             L 36 16
+             L 44 16
+             L 44 48
+             L 36 48
+             L 36 26
+             L 30 40
+             L 26 40
+             L 20 26
+             L 20 48
+             Z" 
+          fill="#FFFFFF" 
+          stroke="none"/>
+  </g>
+</svg>
+
