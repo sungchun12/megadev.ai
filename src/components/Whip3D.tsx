@@ -501,66 +501,91 @@ function ExplosionParticles({
       }
     `,
     fragmentShader: `
+      precision highp float;
       varying vec3 vColor;
       varying float vOpacity;
       uniform float time;
       
+      // Award-winning sparkle shader with advanced effects
       void main() {
-        // High-fidelity multi-layered sparkle shape
         vec2 center = gl_PointCoord - vec2(0.5);
         float dist = length(center);
         float angle = atan(center.y, center.x);
         
-        // Multi-rayed star pattern with rotation and multiple layers
-        float rayCount1 = 8.0;
-        float rayCount2 = 16.0;
-        float rayCount3 = 24.0;
-        float rotation = time * 3.0;
+        // Multi-frequency ray system with complex harmonics
+        float rayCount1 = 6.0;
+        float rayCount2 = 12.0;
+        float rayCount3 = 18.0;
+        float rayCount4 = 24.0;
+        float rotation = time * 2.5;
         
+        // Phase-shifted rays for complex interference patterns
         float rays1 = 0.5 + 0.5 * sin(angle * rayCount1 + rotation);
-        float rays2 = 0.5 + 0.5 * sin(angle * rayCount2 - rotation * 0.8);
-        float rays3 = 0.5 + 0.5 * sin(angle * rayCount3 + rotation * 0.6);
-        float rays = (rays1 * 0.4 + rays2 * 0.35 + rays3 * 0.25);
+        float rays2 = 0.5 + 0.5 * sin(angle * rayCount2 - rotation * 0.75);
+        float rays3 = 0.5 + 0.5 * sin(angle * rayCount3 + rotation * 0.5);
+        float rays4 = 0.5 + 0.5 * sin(angle * rayCount4 - rotation * 0.4);
         
-        // Layered star pattern with multiple falloff zones
-        float starOuter = smoothstep(0.65, 0.35, dist) * (0.5 + 0.5 * rays);
-        float starMid = smoothstep(0.45, 0.2, dist) * (0.7 + 0.3 * rays);
-        float starInner = smoothstep(0.3, 0.05, dist) * (0.9 + 0.1 * rays);
-        float star = max(max(starOuter, starMid * 1.3), starInner * 1.6);
+        // Weighted combination for rich interference
+        float rays = rays1 * 0.3 + rays2 * 0.3 + rays3 * 0.25 + rays4 * 0.15;
         
-        // Multi-layer core glow with pulsing
-        float core1 = exp(-dist * 10.0);
-        float core2 = exp(-dist * 20.0) * (0.6 + 0.4 * sin(time * 6.0));
-        float core3 = exp(-dist * 35.0) * (0.5 + 0.5 * sin(time * 8.0 + 1.0));
-        float core = max(max(core1, core2 * 1.8), core3 * 2.2);
+        // Multi-zone star with exponential falloff for award-winning smoothness
+        float starZone1 = smoothstep(0.7, 0.4, dist) * (0.4 + 0.6 * rays);
+        float starZone2 = smoothstep(0.5, 0.25, dist) * (0.6 + 0.4 * rays);
+        float starZone3 = smoothstep(0.35, 0.1, dist) * (0.8 + 0.2 * rays);
+        float starZone4 = smoothstep(0.2, 0.02, dist) * (0.95 + 0.05 * rays);
+        float star = max(max(max(starZone1, starZone2 * 1.4), starZone3 * 1.8), starZone4 * 2.2);
         
-        // Outer halo for ethereal glow
-        float halo = exp(-dist * 3.0) * (1.0 - smoothstep(0.25, 0.55, dist));
+        // Ultra-smooth multi-layer core with harmonic pulsing
+        float core1 = exp(-dist * 12.0);
+        float core2 = exp(-dist * 25.0) * (0.5 + 0.5 * sin(time * 5.0));
+        float core3 = exp(-dist * 45.0) * (0.4 + 0.6 * sin(time * 7.0 + 0.8));
+        float core4 = exp(-dist * 70.0) * (0.3 + 0.7 * sin(time * 9.0 + 1.6));
+        float core = max(max(max(core1, core2 * 2.0), core3 * 2.5), core4 * 3.0);
         
-        // Combine all layers with proper weighting
-        float alpha = (star * 0.6 + core * 1.2 + halo * 0.3) * vOpacity;
+        // Sophisticated halo with radial gradient
+        float haloInner = exp(-dist * 4.0) * smoothstep(0.3, 0.1, dist);
+        float haloOuter = exp(-dist * 2.2) * (1.0 - smoothstep(0.2, 0.6, dist));
+        float halo = max(haloInner * 0.6, haloOuter * 0.4);
         
-        if (alpha < 0.01) discard;
+        // Fresnel-like edge enhancement for premium feel
+        float fresnel = pow(1.0 - smoothstep(0.0, 0.5, dist), 1.5);
+        float edgeGlow = fresnel * 0.3;
         
-        // Enhanced color with dynamic brightness and color shifting
-        vec3 colorShift = vec3(0.2, 0.35, 0.45) * sin(time * 4.0 + dist * 12.0) * 0.4;
-        vec3 finalColor = vColor * (1.0 + core * 1.2) + colorShift + vec3(0.5) * core;
+        // Combine all layers with award-winning composition
+        float alpha = (star * 0.55 + core * 1.3 + halo * 0.35 + edgeGlow) * vOpacity;
         
-        // Chromatic aberration for extra visual fidelity
+        if (alpha < 0.005) discard;
+        
+        // Advanced color processing with dynamic gradients
+        vec3 colorShift1 = vec3(0.15, 0.3, 0.4) * sin(time * 3.5 + dist * 15.0) * 0.5;
+        vec3 colorShift2 = vec3(0.25, 0.2, 0.35) * cos(time * 4.5 + dist * 18.0) * 0.3;
+        vec3 baseColor = vColor * (1.0 + core * 1.4 + star * 0.3);
+        vec3 finalColor = baseColor + colorShift1 + colorShift2 + vec3(0.6) * core;
+        
+        // Premium chromatic aberration with distance-based intensity
+        float chromaIntensity = smoothstep(0.0, 0.4, dist) * 0.5;
         vec3 chroma = vec3(
-          finalColor.r * (1.0 + dist * 0.4),
-          finalColor.g,
-          finalColor.b * (1.0 - dist * 0.25)
+          finalColor.r * (1.0 + chromaIntensity * 0.5),
+          finalColor.g * (1.0 + chromaIntensity * 0.1),
+          finalColor.b * (1.0 - chromaIntensity * 0.3)
         );
         
-        // Add subtle rainbow effect at edges
-        float rainbow = sin(angle * 3.0 + time * 2.0) * 0.3 + 0.7;
-        vec3 rainbowTint = vec3(
-          sin(angle + time) * 0.5 + 0.5,
-          sin(angle + time + 2.094) * 0.5 + 0.5,
-          sin(angle + time + 4.188) * 0.5 + 0.5
-        ) * 0.15;
-        chroma += rainbowTint * (1.0 - smoothstep(0.2, 0.5, dist));
+        // Award-winning rainbow diffraction effect
+        float rainbowPhase = angle * 2.0 + time * 1.5;
+        vec3 rainbow = vec3(
+          sin(rainbowPhase) * 0.5 + 0.5,
+          sin(rainbowPhase + 2.094) * 0.5 + 0.5,
+          sin(rainbowPhase + 4.188) * 0.5 + 0.5
+        );
+        float rainbowMask = (1.0 - smoothstep(0.15, 0.5, dist)) * 0.2;
+        chroma += rainbow * rainbowMask;
+        
+        // Subtle color temperature shift for warmth
+        vec3 warmTint = vec3(1.05, 1.0, 0.95) * (0.7 + 0.3 * sin(time * 2.0));
+        chroma *= mix(vec3(1.0), warmTint, 0.15);
+        
+        // Final gamma correction for award-winning brightness
+        chroma = pow(chroma, vec3(0.95));
         
         gl_FragColor = vec4(chroma, alpha);
       }
@@ -574,7 +599,7 @@ function ExplosionParticles({
     if (!pointsRef.current || !materialRef.current) return
     
     const elapsed = state.clock.elapsedTime - explosion.startTime
-    const duration = 1.4 // Longer duration for smoother, more visible fade
+    const duration = 1.6 // Award-winning duration for perfect visibility
     const progress = Math.min(elapsed / duration, 1.0)
     
     if (progress >= 1) {
@@ -588,32 +613,42 @@ function ExplosionParticles({
     
     for (let i = 0; i < particleCount; i++) {
       const idx = i * 3
-      // More sophisticated velocity easing with exponential decay
-      const velocityScale = Math.pow(1 - progress, 2.8) * 0.025
+      
+      // Award-winning physics with sophisticated easing
+      const velocityDecay = Math.pow(1 - progress, 3.0) // Smooth exponential decay
+      const velocityScale = velocityDecay * 0.028
+      
       positions[idx] += explosion.velocities[idx] * velocityScale
       positions[idx + 1] += explosion.velocities[idx + 1] * velocityScale
       positions[idx + 2] += explosion.velocities[idx + 2] * velocityScale
       
-      // Dynamic size animation with per-particle variation
-      const sizeVariation = 0.25 + (i % 3) * 0.15 // Vary by particle index
-      const sizeDecay = 1 - Math.pow(progress, sizeVariation) * 0.65
+      // Award-winning size animation with perfect per-particle curves
+      const particlePhase = (i % 5) / 5.0 // Create 5 different phases
+      const sizeVariation = 0.2 + particlePhase * 0.25
+      const sizeDecay = 1 - Math.pow(progress, sizeVariation) * 0.7
       sizes[i] = explosion.sizes[i] * sizeDecay
       
-      // Add subtle rotation-based position offset for spiral effect
-      const rotationOffset = Math.sin(elapsed * 2.5 + i * 0.1) * 0.025 * (1 - progress)
-      positions[idx] += rotationOffset * Math.cos(i * 0.5)
-      positions[idx + 1] += rotationOffset * Math.sin(i * 0.5)
+      // Award-winning spiral motion with harmonic oscillation
+      const spiralFreq = 2.8 + (i % 3) * 0.4
+      const spiralPhase = i * 0.12
+      const rotationOffset = Math.sin(elapsed * spiralFreq + spiralPhase) * 0.03 * (1 - progress)
+      positions[idx] += rotationOffset * Math.cos(i * 0.6)
+      positions[idx + 1] += rotationOffset * Math.sin(i * 0.6)
+      
+      // Subtle gravity effect for natural fall
+      const gravity = progress * progress * 0.015
+      positions[idx + 1] -= gravity
     }
     
     pointsRef.current.geometry.attributes.position.needsUpdate = true
     pointsRef.current.geometry.attributes.size.needsUpdate = true
     
-    // Enhanced fade curve for smoother, more beautiful decay
-    const fadeCurve = 1 - Math.pow(progress, 1.8)
+    // Award-winning fade curve with perfect easing
+    const fadeCurve = 1 - Math.pow(progress, 1.6)
     materialRef.current.uniforms.opacity.value = fadeCurve
     
-    // Animate time for sparkle rotation and pulsing effects
-    materialRef.current.uniforms.time.value = elapsed * 2.0
+    // Award-winning time animation for complex effects
+    materialRef.current.uniforms.time.value = elapsed * 2.2
   })
 
   return (
@@ -654,84 +689,130 @@ function ExplosionManager({ whipState }: { whipState: React.MutableRefObject<Whi
   
   const createExplosion = useCallback((x: number, y: number) => {
     const ws = whipState.current
-    const particleCount = isMobileDevice() ? 50 : 90 // More particles for richer explosions
+    const particleCount = isMobileDevice() ? 70 : 120 // Award-winning particle density
     
     const particles = new Float32Array(particleCount * 3)
     const velocities = new Float32Array(particleCount * 3)
     const colors = new Float32Array(particleCount * 3)
     const sizes = new Float32Array(particleCount)
     
-    // Enhanced color palette with more vibrant and varied colors
+    // Award-winning color palette with sophisticated gradients
     const colorPalette = [
-      new THREE.Color('#00D4FF'), // Bright cyan
-      new THREE.Color('#00FFFF'), // Pure cyan
-      new THREE.Color('#4DA6FF'), // Sky blue
-      new THREE.Color('#80FFFF'), // Pale cyan
-      new THREE.Color('#FFFFFF'), // Pure white
-      new THREE.Color('#B3E5FF'), // Light blue
-      new THREE.Color('#00E5FF'), // Electric cyan
-      new THREE.Color('#66D9FF'), // Bright aqua
-      new THREE.Color('#1AC8FF'), // Deep cyan
-      new THREE.Color('#A8F0FF'), // Very light cyan
+      new THREE.Color('#00D4FF'), // Bright cyan - primary
+      new THREE.Color('#00FFFF'), // Pure cyan - vibrant
+      new THREE.Color('#1AE5FF'), // Electric cyan - intense
+      new THREE.Color('#4DA6FF'), // Sky blue - cool
+      new THREE.Color('#66D9FF'), // Bright aqua - fresh
+      new THREE.Color('#80FFFF'), // Pale cyan - soft
+      new THREE.Color('#A8F0FF'), // Very light cyan - ethereal
+      new THREE.Color('#B3E5FF'), // Light blue - gentle
+      new THREE.Color('#C8F0FF'), // Ice blue - delicate
+      new THREE.Color('#E0F7FF'), // Frost blue - subtle
+      new THREE.Color('#FFFFFF'), // Pure white - highlight
+      new THREE.Color('#F0FCFF'), // Off-white - warm
     ]
     
     for (let i = 0; i < particleCount; i++) {
       const idx = i * 3
       
-      // Start at explosion center with tighter initial spread for cohesive burst
-      const initialSpread = 0.35
-      particles[idx] = x + (Math.random() - 0.5) * initialSpread
-      particles[idx + 1] = y + (Math.random() - 0.5) * initialSpread
-      particles[idx + 2] = 1 + (Math.random() - 0.5) * 0.4
+      // Award-winning initial distribution with organic clustering
+      const clusterRadius = 0.28
+      const clusterAngle = Math.random() * Math.PI * 2
+      const clusterDist = Math.random() * clusterRadius
+      const baseX = x + Math.cos(clusterAngle) * clusterDist
+      const baseY = y + Math.sin(clusterAngle) * clusterDist
       
-      // More varied velocity patterns - create speed tiers for visual interest
+      // Add micro-variation for natural feel
+      const microSpread = 0.12
+      particles[idx] = baseX + (Math.random() - 0.5) * microSpread
+      particles[idx + 1] = baseY + (Math.random() - 0.5) * microSpread
+      particles[idx + 2] = 1 + (Math.random() - 0.5) * 0.45
+      
+      // Award-winning velocity distribution with sophisticated physics
       const speedVariation = Math.random()
       let speed: number
-      if (speedVariation < 0.25) {
-        // Fast particles (25%) - leading edge
-        speed = 6 + Math.random() * 8
-      } else if (speedVariation < 0.65) {
-        // Medium particles (40%) - main body
-        speed = 4 + Math.random() * 6
+      let speedMultiplier = 1.0
+      
+      if (speedVariation < 0.2) {
+        // Ultra-fast particles (20%) - explosive leading edge
+        speed = 7 + Math.random() * 10
+        speedMultiplier = 1.15
+      } else if (speedVariation < 0.5) {
+        // Fast particles (30%) - primary burst
+        speed = 5 + Math.random() * 7
+        speedMultiplier = 1.05
+      } else if (speedVariation < 0.8) {
+        // Medium particles (30%) - main body
+        speed = 3 + Math.random() * 5
       } else {
-        // Slow particles (35%) - trailing edge
-        speed = 2 + Math.random() * 4
+        // Slow particles (20%) - trailing sparkles
+        speed = 1.5 + Math.random() * 3.5
+        speedMultiplier = 0.9
       }
       
-      // Radial velocity with some vertical bias
+      // Radial velocity with sophisticated vertical bias
       const angle = Math.random() * Math.PI * 2
-      const verticalBias = (Math.random() - 0.25) * 2.5
+      const verticalBias = (Math.random() - 0.2) * 3.0
       
-      // Add slight spiral motion for some particles
-      const spiralAmount = Math.random() < 0.35 ? 0.6 : 0
+      // Award-winning spiral motion with varying intensities
+      const spiralChance = Math.random()
+      let spiralAmount = 0
+      if (spiralChance < 0.4) {
+        spiralAmount = 0.7 + Math.random() * 0.5 // Strong spiral
+      } else if (spiralChance < 0.7) {
+        spiralAmount = 0.3 + Math.random() * 0.3 // Medium spiral
+      }
       const spiralAngle = angle + spiralAmount
       
-      velocities[idx] = Math.cos(spiralAngle) * speed
-      velocities[idx + 1] = Math.sin(spiralAngle) * speed + verticalBias
-      velocities[idx + 2] = (Math.random() - 0.5) * speed * 0.4
+      velocities[idx] = Math.cos(spiralAngle) * speed * speedMultiplier
+      velocities[idx + 1] = Math.sin(spiralAngle) * speed * speedMultiplier + verticalBias
+      velocities[idx + 2] = (Math.random() - 0.5) * speed * 0.5
       
-      // Intelligent color selection with brightness variation
-      const colorIndex = Math.floor(Math.random() * colorPalette.length)
-      const color = colorPalette[colorIndex].clone()
+      // Award-winning color selection with intelligent gradients
+      const colorVariation = Math.random()
+      let color: THREE.Color
       
-      // Add brightness variation for depth (brighter in center, dimmer at edges)
-      const brightness = 0.85 + Math.random() * 0.25
-      color.multiplyScalar(brightness)
+      // Create color zones for visual hierarchy
+      if (colorVariation < 0.15) {
+        // Core colors (15%) - brightest, most saturated
+        const coreColors = [0, 1, 2, 3, 4] // Brightest palette indices
+        color = colorPalette[coreColors[Math.floor(Math.random() * coreColors.length)]].clone()
+        color.multiplyScalar(1.0 + Math.random() * 0.2) // Extra bright
+      } else if (colorVariation < 0.5) {
+        // Primary colors (35%) - main sparkle body
+        const primaryColors = [0, 1, 2, 3, 4, 5, 6]
+        color = colorPalette[primaryColors[Math.floor(Math.random() * primaryColors.length)]].clone()
+        color.multiplyScalar(0.9 + Math.random() * 0.15)
+      } else if (colorVariation < 0.85) {
+        // Secondary colors (35%) - supporting sparkles
+        const secondaryColors = [4, 5, 6, 7, 8, 9]
+        color = colorPalette[secondaryColors[Math.floor(Math.random() * secondaryColors.length)]].clone()
+        color.multiplyScalar(0.8 + Math.random() * 0.15)
+      } else {
+        // Accent colors (15%) - subtle highlights
+        const accentColors = [7, 8, 9, 10, 11]
+        color = colorPalette[accentColors[Math.floor(Math.random() * accentColors.length)]].clone()
+        color.multiplyScalar(0.75 + Math.random() * 0.15)
+      }
       
       colors[idx] = color.r
       colors[idx + 1] = color.g
       colors[idx + 2] = color.b
       
-      // More varied sizes - mix of large, medium, and small sparkles
-      if (Math.random() < 0.15) {
-        // 15% large sparkles (bright focal points)
-        sizes[i] = 0.5 + Math.random() * 0.6
-      } else if (Math.random() < 0.45) {
-        // 30% medium sparkles
-        sizes[i] = 0.3 + Math.random() * 0.35
+      // Award-winning size distribution with perfect hierarchy
+      const sizeVariation = Math.random()
+      if (sizeVariation < 0.1) {
+        // Ultra-large sparkles (10%) - dramatic focal points
+        sizes[i] = 0.7 + Math.random() * 0.8
+      } else if (sizeVariation < 0.3) {
+        // Large sparkles (20%) - primary highlights
+        sizes[i] = 0.45 + Math.random() * 0.5
+      } else if (sizeVariation < 0.6) {
+        // Medium sparkles (30%) - main body
+        sizes[i] = 0.28 + Math.random() * 0.4
       } else {
-        // 55% small sparkles (ambient sparkle)
-        sizes[i] = 0.18 + Math.random() * 0.25
+        // Small sparkles (40%) - ambient sparkle field
+        sizes[i] = 0.15 + Math.random() * 0.25
       }
     }
     
@@ -911,7 +992,11 @@ export function Whip3D() {
     whipState.current.targetY = normalized.y
     whipState.current.isDragging = true
     whipState.current.returnProgress = 0
-    setIsDragging(true)
+    
+    // Use requestAnimationFrame to ensure smooth transition start
+    requestAnimationFrame(() => {
+      setIsDragging(true)
+    })
   }, [pageToNormalized])
   
   // Global pointer move handler - works across the entire page
@@ -1008,7 +1093,7 @@ export function Whip3D() {
       </div>
       
       {isDragging && (
-        <div className="whip-hint">whip it vigorously + release to let go</div>
+        <div className="whip-hint">whip it vigorously | release to let go</div>
       )}
     </div>
   )
