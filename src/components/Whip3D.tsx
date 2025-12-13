@@ -477,7 +477,7 @@ function ExplosionParticles({
   
   const particleCount = explosion.particles.length / 3
   
-  // Create shader material for sparkle effect
+  // Create shader material for high-fidelity sparkle effect
   const shaderMaterial = useMemo(() => new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0 },
@@ -503,26 +503,66 @@ function ExplosionParticles({
     fragmentShader: `
       varying vec3 vColor;
       varying float vOpacity;
+      uniform float time;
       
       void main() {
-        // Create a soft sparkle shape
+        // High-fidelity multi-layered sparkle shape
         vec2 center = gl_PointCoord - vec2(0.5);
         float dist = length(center);
-        
-        // Star/sparkle pattern
         float angle = atan(center.y, center.x);
-        float rays = 0.5 + 0.5 * sin(angle * 4.0);
-        float star = smoothstep(0.5, 0.2, dist) * (0.7 + 0.3 * rays);
         
-        // Core glow
-        float core = exp(-dist * 6.0);
+        // Multi-rayed star pattern with rotation and multiple layers
+        float rayCount1 = 8.0;
+        float rayCount2 = 16.0;
+        float rayCount3 = 24.0;
+        float rotation = time * 3.0;
         
-        float alpha = (star + core) * vOpacity;
+        float rays1 = 0.5 + 0.5 * sin(angle * rayCount1 + rotation);
+        float rays2 = 0.5 + 0.5 * sin(angle * rayCount2 - rotation * 0.8);
+        float rays3 = 0.5 + 0.5 * sin(angle * rayCount3 + rotation * 0.6);
+        float rays = (rays1 * 0.4 + rays2 * 0.35 + rays3 * 0.25);
+        
+        // Layered star pattern with multiple falloff zones
+        float starOuter = smoothstep(0.65, 0.35, dist) * (0.5 + 0.5 * rays);
+        float starMid = smoothstep(0.45, 0.2, dist) * (0.7 + 0.3 * rays);
+        float starInner = smoothstep(0.3, 0.05, dist) * (0.9 + 0.1 * rays);
+        float star = max(max(starOuter, starMid * 1.3), starInner * 1.6);
+        
+        // Multi-layer core glow with pulsing
+        float core1 = exp(-dist * 10.0);
+        float core2 = exp(-dist * 20.0) * (0.6 + 0.4 * sin(time * 6.0));
+        float core3 = exp(-dist * 35.0) * (0.5 + 0.5 * sin(time * 8.0 + 1.0));
+        float core = max(max(core1, core2 * 1.8), core3 * 2.2);
+        
+        // Outer halo for ethereal glow
+        float halo = exp(-dist * 3.0) * (1.0 - smoothstep(0.25, 0.55, dist));
+        
+        // Combine all layers with proper weighting
+        float alpha = (star * 0.6 + core * 1.2 + halo * 0.3) * vOpacity;
         
         if (alpha < 0.01) discard;
         
-        vec3 finalColor = vColor + vec3(0.3) * core;
-        gl_FragColor = vec4(finalColor, alpha);
+        // Enhanced color with dynamic brightness and color shifting
+        vec3 colorShift = vec3(0.2, 0.35, 0.45) * sin(time * 4.0 + dist * 12.0) * 0.4;
+        vec3 finalColor = vColor * (1.0 + core * 1.2) + colorShift + vec3(0.5) * core;
+        
+        // Chromatic aberration for extra visual fidelity
+        vec3 chroma = vec3(
+          finalColor.r * (1.0 + dist * 0.4),
+          finalColor.g,
+          finalColor.b * (1.0 - dist * 0.25)
+        );
+        
+        // Add subtle rainbow effect at edges
+        float rainbow = sin(angle * 3.0 + time * 2.0) * 0.3 + 0.7;
+        vec3 rainbowTint = vec3(
+          sin(angle + time) * 0.5 + 0.5,
+          sin(angle + time + 2.094) * 0.5 + 0.5,
+          sin(angle + time + 4.188) * 0.5 + 0.5
+        ) * 0.15;
+        chroma += rainbowTint * (1.0 - smoothstep(0.2, 0.5, dist));
+        
+        gl_FragColor = vec4(chroma, alpha);
       }
     `,
     transparent: true,
@@ -534,8 +574,8 @@ function ExplosionParticles({
     if (!pointsRef.current || !materialRef.current) return
     
     const elapsed = state.clock.elapsedTime - explosion.startTime
-    const duration = 1.0 // Explosion lasts 1 second
-    const progress = elapsed / duration
+    const duration = 1.4 // Longer duration for smoother, more visible fade
+    const progress = Math.min(elapsed / duration, 1.0)
     
     if (progress >= 1) {
       onComplete(explosion.id)
@@ -548,22 +588,32 @@ function ExplosionParticles({
     
     for (let i = 0; i < particleCount; i++) {
       const idx = i * 3
-      // Apply velocity with easing (slow down over time)
-      const velocityScale = Math.pow(1 - progress, 2) * 0.02
+      // More sophisticated velocity easing with exponential decay
+      const velocityScale = Math.pow(1 - progress, 2.8) * 0.025
       positions[idx] += explosion.velocities[idx] * velocityScale
       positions[idx + 1] += explosion.velocities[idx + 1] * velocityScale
       positions[idx + 2] += explosion.velocities[idx + 2] * velocityScale
       
-      // Shrink particles over time (but keep them visible longer)
-      sizes[i] = explosion.sizes[i] * (1 - progress * 0.5)
+      // Dynamic size animation with per-particle variation
+      const sizeVariation = 0.25 + (i % 3) * 0.15 // Vary by particle index
+      const sizeDecay = 1 - Math.pow(progress, sizeVariation) * 0.65
+      sizes[i] = explosion.sizes[i] * sizeDecay
+      
+      // Add subtle rotation-based position offset for spiral effect
+      const rotationOffset = Math.sin(elapsed * 2.5 + i * 0.1) * 0.025 * (1 - progress)
+      positions[idx] += rotationOffset * Math.cos(i * 0.5)
+      positions[idx + 1] += rotationOffset * Math.sin(i * 0.5)
     }
     
     pointsRef.current.geometry.attributes.position.needsUpdate = true
     pointsRef.current.geometry.attributes.size.needsUpdate = true
     
-    // Fade out more gradually
-    materialRef.current.uniforms.opacity.value = 1 - Math.pow(progress, 2)
-    materialRef.current.uniforms.time.value = elapsed
+    // Enhanced fade curve for smoother, more beautiful decay
+    const fadeCurve = 1 - Math.pow(progress, 1.8)
+    materialRef.current.uniforms.opacity.value = fadeCurve
+    
+    // Animate time for sparkle rotation and pulsing effects
+    materialRef.current.uniforms.time.value = elapsed * 2.0
   })
 
   return (
@@ -604,47 +654,85 @@ function ExplosionManager({ whipState }: { whipState: React.MutableRefObject<Whi
   
   const createExplosion = useCallback((x: number, y: number) => {
     const ws = whipState.current
-    const particleCount = isMobileDevice() ? 35 : 60
+    const particleCount = isMobileDevice() ? 50 : 90 // More particles for richer explosions
     
     const particles = new Float32Array(particleCount * 3)
     const velocities = new Float32Array(particleCount * 3)
     const colors = new Float32Array(particleCount * 3)
     const sizes = new Float32Array(particleCount)
     
-    // Colors for the explosion - cyan to white gradient
+    // Enhanced color palette with more vibrant and varied colors
     const colorPalette = [
-      new THREE.Color('#00D4FF'), // Cyan
-      new THREE.Color('#4DA6FF'), // Light blue
-      new THREE.Color('#FFFFFF'), // White
-      new THREE.Color('#00FFFF'), // Aqua
+      new THREE.Color('#00D4FF'), // Bright cyan
+      new THREE.Color('#00FFFF'), // Pure cyan
+      new THREE.Color('#4DA6FF'), // Sky blue
       new THREE.Color('#80FFFF'), // Pale cyan
+      new THREE.Color('#FFFFFF'), // Pure white
+      new THREE.Color('#B3E5FF'), // Light blue
+      new THREE.Color('#00E5FF'), // Electric cyan
+      new THREE.Color('#66D9FF'), // Bright aqua
+      new THREE.Color('#1AC8FF'), // Deep cyan
+      new THREE.Color('#A8F0FF'), // Very light cyan
     ]
     
     for (let i = 0; i < particleCount; i++) {
       const idx = i * 3
       
-      // Start at explosion center with slight random offset
-      particles[idx] = x + (Math.random() - 0.5) * 0.5
-      particles[idx + 1] = y + (Math.random() - 0.5) * 0.5
-      particles[idx + 2] = 1 + (Math.random() - 0.5) * 0.3
+      // Start at explosion center with tighter initial spread for cohesive burst
+      const initialSpread = 0.35
+      particles[idx] = x + (Math.random() - 0.5) * initialSpread
+      particles[idx + 1] = y + (Math.random() - 0.5) * initialSpread
+      particles[idx + 2] = 1 + (Math.random() - 0.5) * 0.4
       
-      // Radial velocity with some randomness - increased speed
+      // More varied velocity patterns - create speed tiers for visual interest
+      const speedVariation = Math.random()
+      let speed: number
+      if (speedVariation < 0.25) {
+        // Fast particles (25%) - leading edge
+        speed = 6 + Math.random() * 8
+      } else if (speedVariation < 0.65) {
+        // Medium particles (40%) - main body
+        speed = 4 + Math.random() * 6
+      } else {
+        // Slow particles (35%) - trailing edge
+        speed = 2 + Math.random() * 4
+      }
+      
+      // Radial velocity with some vertical bias
       const angle = Math.random() * Math.PI * 2
-      const speed = 3 + Math.random() * 6
-      const verticalBias = (Math.random() - 0.3) * 2
+      const verticalBias = (Math.random() - 0.25) * 2.5
       
-      velocities[idx] = Math.cos(angle) * speed
-      velocities[idx + 1] = Math.sin(angle) * speed + verticalBias
-      velocities[idx + 2] = (Math.random() - 0.5) * speed * 0.3
+      // Add slight spiral motion for some particles
+      const spiralAmount = Math.random() < 0.35 ? 0.6 : 0
+      const spiralAngle = angle + spiralAmount
       
-      // Random color from palette
-      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)]
+      velocities[idx] = Math.cos(spiralAngle) * speed
+      velocities[idx + 1] = Math.sin(spiralAngle) * speed + verticalBias
+      velocities[idx + 2] = (Math.random() - 0.5) * speed * 0.4
+      
+      // Intelligent color selection with brightness variation
+      const colorIndex = Math.floor(Math.random() * colorPalette.length)
+      const color = colorPalette[colorIndex].clone()
+      
+      // Add brightness variation for depth (brighter in center, dimmer at edges)
+      const brightness = 0.85 + Math.random() * 0.25
+      color.multiplyScalar(brightness)
+      
       colors[idx] = color.r
       colors[idx + 1] = color.g
       colors[idx + 2] = color.b
       
-      // Larger sizes for visibility
-      sizes[i] = 0.25 + Math.random() * 0.4
+      // More varied sizes - mix of large, medium, and small sparkles
+      if (Math.random() < 0.15) {
+        // 15% large sparkles (bright focal points)
+        sizes[i] = 0.5 + Math.random() * 0.6
+      } else if (Math.random() < 0.45) {
+        // 30% medium sparkles
+        sizes[i] = 0.3 + Math.random() * 0.35
+      } else {
+        // 55% small sparkles (ambient sparkle)
+        sizes[i] = 0.18 + Math.random() * 0.25
+      }
     }
     
     const explosion: Explosion = {
@@ -920,7 +1008,7 @@ export function Whip3D() {
       </div>
       
       {isDragging && (
-        <div className="whip-hint">Release to let go</div>
+        <div className="whip-hint">whip it vigorously + release to let go</div>
       )}
     </div>
   )
