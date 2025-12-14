@@ -8,7 +8,7 @@ export function Header() {
         <span className="header-title-domain">.ai</span>
       </h1>
       <p className="header-tagline">
-        <span className="header-tagline-text">hyper-leverage tools & experiences</span>
+        <span className="header-tagline-text">hyper-leverage tools & skills</span>
       </p>
     </header>
   )

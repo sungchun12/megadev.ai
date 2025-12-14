@@ -2,45 +2,44 @@
 .essay-section {
   min-height: 100vh;
   position: relative;
-  background: linear-gradient(
-    to bottom,
-    var(--color-bg-primary) 0%,
-    var(--color-bg-deep) 100%
-  );
   padding: var(--spacing-xl) var(--spacing-md);
+}
+
+/* Overlay for text legibility */
+.essay-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 25, 47, 0.85);
+  pointer-events: none;
 }
 
 .essay-container {
   max-width: 720px;
   margin: 0 auto;
   padding: var(--spacing-xl) 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Wrapper for whole essay fade-in animation */
+.essay-content-wrapper {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.essay-content-wrapper.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Essay Header */
 .essay-header {
   text-align: center;
   margin-bottom: var(--spacing-xl);
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.essay-header.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.essay-label {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-accent-glow);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border: 1px solid var(--color-accent-glow);
-  border-radius: 2px;
 }
 
 .essay-title {
@@ -63,21 +62,13 @@
   position: relative;
 }
 
-/* Individual paragraphs with scroll reveal */
+/* Individual paragraphs */
 .essay-paragraph {
   font-family: var(--font-body);
   font-size: clamp(1rem, 2.5vw, 1.25rem);
   color: var(--color-text-primary);
   line-height: 1.8;
   margin-bottom: var(--spacing-lg);
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.essay-paragraph.visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* First paragraph - larger intro */
@@ -107,14 +98,6 @@
   background: rgba(0, 212, 255, 0.05);
   border-left: 3px solid var(--color-accent-glow);
   border-radius: 0 4px 4px 0;
-  opacity: 0;
-  transform: translateX(-20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.essay-highlight.visible {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 .essay-highlight p {
@@ -126,20 +109,23 @@
   line-height: 1.7;
 }
 
+.essay-highlight a {
+  color: var(--color-accent-glow);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.essay-highlight a:hover {
+  color: var(--color-accent-highlight);
+}
+
 /* Closing statement */
 .essay-closing {
   text-align: center;
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-xl);
   border-top: 1px solid var(--color-line-annotation);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.essay-closing.visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .essay-closing p {
