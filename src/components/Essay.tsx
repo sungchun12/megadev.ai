@@ -42,7 +42,9 @@ export function Essay() {
       <div className="essay-overlay"></div>
       <div className="essay-container">
         <ScrollReveal className="essay-content-wrapper">
+          <div className="essay-annotation-line" aria-hidden="true" />
           <header className="essay-header">
+            <span className="essay-label">DOC_01</span>
             <h2 id="essay-title" className="essay-title">What is a Megadev?</h2>
           </header>
 

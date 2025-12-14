@@ -1047,18 +1047,30 @@ export function Whip3D() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
   
+  // Check if mobile on mount and enable hover state by default on mobile
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mobile = isMobileDevice()
+    setIsMobile(mobile)
+    // On mobile, enable the pulsing glow effect by default
+    if (mobile) {
+      whipState.current.isHovering = true
+    }
+  }, [])
+
   const handleMouseEnter = useCallback(() => {
     setIsHovering(true)
     whipState.current.isHovering = true
   }, [])
-  
+
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false)
     whipState.current.isHovering = false
   }, [])
-  
-  // Show hint when hovering but not dragging
-  const showClickHint = isHovering && !isDragging
+
+  // Show hint when hovering (desktop) or always on mobile, but not when dragging
+  const showClickHint = (isHovering || isMobile) && !isDragging
   
   return (
     <div 
