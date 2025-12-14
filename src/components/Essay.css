@@ -1,0 +1,209 @@
+/* Essay Section */
+.essay-section {
+  min-height: 100vh;
+  position: relative;
+  background: linear-gradient(
+    to bottom,
+    var(--color-bg-primary) 0%,
+    var(--color-bg-deep) 100%
+  );
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.essay-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) 0;
+}
+
+/* Essay Header */
+.essay-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.essay-header.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.essay-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-accent-glow);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--color-accent-glow);
+  border-radius: 2px;
+}
+
+.essay-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.1;
+}
+
+.essay-author {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+/* Essay Content */
+.essay-content {
+  position: relative;
+}
+
+/* Individual paragraphs with scroll reveal */
+.essay-paragraph {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--color-text-primary);
+  line-height: 1.8;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.essay-paragraph.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* First paragraph - larger intro */
+.essay-paragraph.intro {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* Links within essay */
+.essay-paragraph a {
+  color: var(--color-accent-glow);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.essay-paragraph a:hover {
+  color: var(--color-accent-highlight);
+}
+
+/* Highlighted quote/emphasis sections */
+.essay-highlight {
+  position: relative;
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xl) 0;
+  background: rgba(0, 212, 255, 0.05);
+  border-left: 3px solid var(--color-accent-glow);
+  border-radius: 0 4px 4px 0;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.essay-highlight.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.essay-highlight p {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* Closing statement */
+.essay-closing {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-line-annotation);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.essay-closing.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.essay-closing p {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-accent-glow);
+  margin: 0;
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: var(--spacing-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  opacity: 0.7;
+  animation: bounce 2s infinite;
+}
+
+.scroll-indicator-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.scroll-indicator-arrow {
+  width: 24px;
+  height: 24px;
+  border-right: 2px solid var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-text-secondary);
+  transform: rotate(45deg);
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  60% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .essay-section {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .essay-container {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .essay-highlight {
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+  }
+}
