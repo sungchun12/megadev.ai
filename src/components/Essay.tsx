@@ -55,8 +55,12 @@ export function Essay() {
 
             <p className="essay-paragraph">
               I recently bought the domain above and want to research in the open what it means
-              to be a megadev (heavily inspired by megaman). I predict that we will enter into the
-              age of guilds (think: team composition meta) across startups and consultants.
+              to be a megadev (heavily inspired by megaman). It's a silly name for a serious premise: a person with hyper-leverage, and <a
+                href="https://contraptions.venkateshrao.com/p/be-slightly-monstrous"
+                target="_blank"
+                rel="noopener noreferrer"
+              >slightly monstrous</a>. I predict that we will enter into the
+              age of guilds (think: team composition meta) across startups and consultants driven by this notion brewing in the collective consciousness.
             </p>
 
             <p className="essay-paragraph">
