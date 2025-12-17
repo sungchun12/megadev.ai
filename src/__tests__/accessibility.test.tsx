@@ -20,11 +20,8 @@ describe('Accessibility', () => {
   describe('ARIA Labels', () => {
     it('decorative elements have aria-hidden', () => {
       render(<BlueprintBackground />)
-      const bgLayer = document.querySelector('.blueprint-bg')
-      const glassLayer = document.querySelector('.liquid-glass-layer')
-      
-      expect(bgLayer).toHaveAttribute('aria-hidden', 'true')
-      expect(glassLayer).toHaveAttribute('aria-hidden', 'true')
+      const container = document.querySelector('.blueprint-container')
+      expect(container).toHaveAttribute('aria-hidden', 'true')
     })
 
     it('coordinates display has aria-hidden', () => {

@@ -1,8 +1,7 @@
 .shader-background {
   position: fixed;
   inset: 0;
-  z-index: 0; /* Between backgrounds (-2, -3) and content (2) */
+  z-index: -3; /* Main background layer */
   pointer-events: none;
-  background: transparent !important;
 }
 

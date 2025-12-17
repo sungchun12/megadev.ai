@@ -1,6 +1,4 @@
-import { BlueprintBackground } from './components/BlueprintBackground'
 import { BlueprintCoordinates } from './components/BlueprintCoordinates'
-import { BlueprintSketches } from './components/BlueprintSketches'
 import { ShaderBackground } from './components/ShaderBackground'
 import { CharacterDisplay } from './components/CharacterDisplay'
 import { Header } from './components/Header'
@@ -12,9 +10,7 @@ function App() {
     <main className="app">
       {/* Hero Section - First Viewport */}
       <section className="hero-section">
-        <BlueprintBackground />
         <ShaderBackground />
-        <BlueprintSketches />
         <BlueprintCoordinates />
 
         <div className="app-content">

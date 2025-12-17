@@ -67,31 +67,28 @@ describe('BlueprintBackground', () => {
     expect(container).toBeInTheDocument()
   })
 
-  it('renders blueprint background layer', () => {
+  it('renders blueprint container', () => {
     render(<BlueprintBackground />)
-    const bgLayer = document.querySelector('.blueprint-bg')
-    expect(bgLayer).toBeInTheDocument()
-  })
-
-  it('renders liquid glass layer', () => {
-    render(<BlueprintBackground />)
-    const glassLayer = document.querySelector('.liquid-glass-layer')
-    expect(glassLayer).toBeInTheDocument()
+    const container = document.querySelector('.blueprint-container')
+    expect(container).toBeInTheDocument()
   })
 
   it('has aria-hidden on decorative elements', () => {
     render(<BlueprintBackground />)
-    const bgLayer = document.querySelector('.blueprint-bg')
-    const glassLayer = document.querySelector('.liquid-glass-layer')
-    
-    expect(bgLayer).toHaveAttribute('aria-hidden', 'true')
-    expect(glassLayer).toHaveAttribute('aria-hidden', 'true')
+    const container = document.querySelector('.blueprint-container')
+    expect(container).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('has pointer-events: none for non-interactive overlay', () => {
     render(<BlueprintBackground />)
-    const bgLayer = document.querySelector('.blueprint-bg')
-    expect(bgLayer).toHaveStyle({ pointerEvents: 'none' })
+    const container = document.querySelector('.blueprint-container')
+    expect(container).toHaveStyle({ pointerEvents: 'none' })
+  })
+
+  it('renders 3D perspective plane', () => {
+    render(<BlueprintBackground />)
+    const plane = document.querySelector('.blueprint-plane')
+    expect(plane).toBeInTheDocument()
   })
 })
 
