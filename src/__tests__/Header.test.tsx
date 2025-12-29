@@ -48,12 +48,12 @@ describe('Header', () => {
   describe('Tagline', () => {
     it('displays tagline text', () => {
       render(<Header />)
-      expect(screen.getByText('hyper-leverage tools & experiences')).toBeInTheDocument()
+      expect(screen.getByText('hyper-leverage tools & skills')).toBeInTheDocument()
     })
 
     it('renders tagline with correct class', () => {
       render(<Header />)
-      const tagline = screen.getByText('hyper-leverage tools & experiences')
+      const tagline = screen.getByText('hyper-leverage tools & skills')
       expect(tagline).toHaveClass('header-tagline-text')
     })
   })

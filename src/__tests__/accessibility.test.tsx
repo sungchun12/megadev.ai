@@ -16,6 +16,10 @@ vi.mock('../components/CharacterDisplay', () => ({
   CharacterDisplay: () => <div data-testid="character-display" aria-label="Loading 3D animation" />,
 }))
 
+vi.mock('../components/Essay', () => ({
+  Essay: () => <section data-testid="essay" />,
+}))
+
 describe('Accessibility', () => {
   describe('ARIA Labels', () => {
     it('decorative elements have aria-hidden', () => {
@@ -182,7 +186,7 @@ describe('Accessibility', () => {
       render(<Header />)
       expect(screen.getByText('megadev')).toBeInTheDocument()
       expect(screen.getByText('.ai')).toBeInTheDocument()
-      expect(screen.getByText('hyper-leverage tools & experiences')).toBeInTheDocument()
+      expect(screen.getByText('hyper-leverage tools & skills')).toBeInTheDocument()
     })
 
     it('tool description is readable', () => {

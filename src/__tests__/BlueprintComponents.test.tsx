@@ -198,8 +198,9 @@ describe('ShaderBackground', () => {
     expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith(
       'webgl',
       expect.objectContaining({
-        alpha: true,
-        premultipliedAlpha: false,
+        alpha: false,
+        antialias: false,
+        powerPreference: 'low-power',
       })
     )
   })

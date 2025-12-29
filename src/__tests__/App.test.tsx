@@ -4,16 +4,8 @@ import userEvent from '@testing-library/user-event'
 import App from '../App'
 
 // Mock all heavy components to focus on App integration
-vi.mock('../components/BlueprintBackground', () => ({
-  BlueprintBackground: () => <div data-testid="blueprint-background" />,
-}))
-
 vi.mock('../components/BlueprintCoordinates', () => ({
   BlueprintCoordinates: () => <div data-testid="blueprint-coordinates" />,
-}))
-
-vi.mock('../components/BlueprintSketches', () => ({
-  BlueprintSketches: () => <div data-testid="blueprint-sketches" />,
 }))
 
 vi.mock('../components/ShaderBackground', () => ({
@@ -32,6 +24,10 @@ vi.mock('../components/Header', () => ({
   ),
 }))
 
+vi.mock('../components/Essay', () => ({
+  Essay: () => <section data-testid="essay" />,
+}))
+
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -46,13 +42,12 @@ describe('App', () => {
 
     it('renders all major components', () => {
       render(<App />)
-      
-      expect(screen.getByTestId('blueprint-background')).toBeInTheDocument()
+
       expect(screen.getByTestId('shader-background')).toBeInTheDocument()
-      expect(screen.getByTestId('blueprint-sketches')).toBeInTheDocument()
       expect(screen.getByTestId('blueprint-coordinates')).toBeInTheDocument()
       expect(screen.getByTestId('header')).toBeInTheDocument()
       expect(screen.getByTestId('character-display')).toBeInTheDocument()
+      expect(screen.getByTestId('essay')).toBeInTheDocument()
     })
 
     it('has app-content wrapper', () => {
