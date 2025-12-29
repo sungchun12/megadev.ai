@@ -1,5 +1,7 @@
 # megadev.ai
 
+[![Build and Deploy](https://github.com/sungchun12/megadev.ai/actions/workflows/deploy.yml/badge.svg)](https://github.com/sungchun12/megadev.ai/actions/workflows/deploy.yml)
+
 Hey Y'all! 
 
 I'm Sung.
