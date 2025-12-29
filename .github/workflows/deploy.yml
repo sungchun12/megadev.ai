@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: /home/u536401290/domains/megadev.ai/public_html/
+          server-dir: ./
           protocol: ftps
           port: 21
           log-level: standard
