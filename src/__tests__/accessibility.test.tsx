@@ -187,7 +187,7 @@ describe('Accessibility', () => {
 
     it('tool description is readable', () => {
       render(<App />)
-      expect(screen.getByText('Durable pydantic-ai workflows from the CLI')).toBeInTheDocument()
+      expect(screen.getByText('Personal collection of AI workflows from the CLI')).toBeInTheDocument()
     })
   })
 

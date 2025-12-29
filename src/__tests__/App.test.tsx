@@ -87,7 +87,7 @@ describe('App', () => {
 
     it('displays claiw description', () => {
       render(<App />)
-      expect(screen.getByText('Durable pydantic-ai workflows from the CLI')).toBeInTheDocument()
+      expect(screen.getByText('Personal collection of AI workflows from the CLI')).toBeInTheDocument()
     })
 
     it('displays click hint', () => {
