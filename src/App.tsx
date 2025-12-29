@@ -49,7 +49,7 @@ function App() {
                 <p className="annotation-subtitle">Personal collection of AI workflows from the CLI</p>
                 <div className="annotation-divider" />
                 <p className="annotation-description">
-                  Run AI workflows that make you mega: built by Sung, for everyone.
+                  Run them to feel mega: built by Sung, for everyone.
                   <br />
                   <span className="annotation-hint">[ click to activate ]</span>
                 </p>
