@@ -46,10 +46,10 @@ function App() {
                     claiw
                   </span>
                 </h2>
-                <p className="annotation-subtitle">Durable pydantic-ai workflows from the CLI</p>
+                <p className="annotation-subtitle">Personal collection of AI workflows from the CLI</p>
                 <div className="annotation-divider" />
                 <p className="annotation-description">
-                  Build AI workflows that make you mega: easy to debug, iterate, and deploy
+                  Run AI workflows that make you mega: built by Sung, for everyone.
                   <br />
                   <span className="annotation-hint">[ click to activate ]</span>
                 </p>
