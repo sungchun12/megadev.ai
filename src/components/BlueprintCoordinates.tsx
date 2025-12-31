@@ -53,7 +53,7 @@ export function BlueprintCoordinates() {
         className="coordinates-item coordinates-bottom-right coordinates-link"
         aria-label="View megadev.ai source code on GitHub"
       >
-        megadev.ai v1.0.0
+        megadev.ai source code
       </a>
     </div>
   )

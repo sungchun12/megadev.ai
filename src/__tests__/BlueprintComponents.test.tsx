@@ -110,9 +110,9 @@ describe('BlueprintCoordinates', () => {
     expect(screen.getByText(/y:/)).toBeInTheDocument()
   })
 
-  it('displays version info', () => {
+  it('displays link to source code', () => {
     render(<BlueprintCoordinates />)
-    expect(screen.getByText('megadev.ai v1.0.0')).toBeInTheDocument()
+    expect(screen.getByText('megadev.ai source code')).toBeInTheDocument()
   })
 
   it('has accessible link to source repo', () => {
