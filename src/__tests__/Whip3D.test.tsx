@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { Whip3D } from '../components/Whip3D'
 
 // Mock @react-three/fiber
@@ -64,19 +64,19 @@ vi.mock('three', () => {
 
 describe('Whip3D', () => {
   // Mock requestAnimationFrame for tests
-  const originalRAF = global.requestAnimationFrame
+  const originalRAF = globalThis.requestAnimationFrame
 
   beforeEach(() => {
     vi.clearAllMocks()
     // Mock RAF to execute callback immediately
-    global.requestAnimationFrame = (callback: FrameRequestCallback) => {
+    globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
       callback(0)
       return 0
     }
   })
 
   afterEach(() => {
-    global.requestAnimationFrame = originalRAF
+    globalThis.requestAnimationFrame = originalRAF
   })
 
   describe('Container Rendering', () => {
@@ -251,7 +251,7 @@ describe('Whip3D', () => {
     beforeEach(() => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       // Re-apply RAF mock after fake timers (fake timers can override it)
-      global.requestAnimationFrame = (callback: FrameRequestCallback) => {
+      globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
         callback(0)
         return 0
       }
@@ -374,7 +374,7 @@ describe('Whip3D', () => {
     beforeEach(() => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       // Re-apply RAF mock after fake timers
-      global.requestAnimationFrame = (callback: FrameRequestCallback) => {
+      globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
         callback(0)
         return 0
       }
@@ -494,7 +494,6 @@ describe('Spring Physics Calculations', () => {
         let position = 2.0
         let velocity = 0.0
         let crossedZero = false
-        let wentNegative = false
 
         // Simulate spring return
         for (let i = 0; i < 50; i++) {
@@ -502,9 +501,6 @@ describe('Spring Physics Calculations', () => {
           velocity = velocity * damping + springForce
           position += velocity
 
-          if (position < 0) {
-            wentNegative = true
-          }
           if (position < 0 && !crossedZero) {
             crossedZero = true
           }
