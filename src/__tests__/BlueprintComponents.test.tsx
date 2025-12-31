@@ -115,10 +115,11 @@ describe('BlueprintCoordinates', () => {
     expect(screen.getByText('megadev.ai v1.0.0')).toBeInTheDocument()
   })
 
-  it('has aria-hidden for decorative display', () => {
+  it('has accessible link to source repo', () => {
     render(<BlueprintCoordinates />)
-    const coords = document.querySelector('.coordinates')
-    expect(coords).toHaveAttribute('aria-hidden', 'true')
+    const link = document.querySelector('.coordinates-link')
+    expect(link).toHaveAttribute('href', 'https://github.com/sungchun12/megadev.ai')
+    expect(link).toHaveAccessibleName('View megadev.ai source code on GitHub')
   })
 
   it('has top-left and bottom-right coordinate items', () => {

@@ -28,10 +28,10 @@ describe('Accessibility', () => {
       expect(container).toHaveAttribute('aria-hidden', 'true')
     })
 
-    it('coordinates display has aria-hidden', () => {
+    it('coordinates display contains accessible link to source repo', () => {
       render(<BlueprintCoordinates />)
-      const coords = document.querySelector('.coordinates')
-      expect(coords).toHaveAttribute('aria-hidden', 'true')
+      const link = document.querySelector('.coordinates-link')
+      expect(link).toHaveAttribute('href', 'https://github.com/sungchun12/megadev.ai')
     })
 
     it('sketches have aria-hidden', () => {
@@ -96,10 +96,11 @@ describe('Accessibility', () => {
       vi.stubGlobal('open', mockWindowOpen)
     })
 
-    it('claiw link is focusable', () => {
+    it('claiw button is natively focusable', () => {
       render(<App />)
       const claiw = screen.getByText('claiw')
-      expect(claiw).toHaveAttribute('tabIndex', '0')
+      // Native button elements are focusable by default
+      expect(claiw.tagName.toLowerCase()).toBe('button')
     })
 
     it('claiw link can be activated with Enter', async () => {
@@ -132,10 +133,11 @@ describe('Accessibility', () => {
   })
 
   describe('Interactive Element Roles', () => {
-    it('claiw link has role="button"', () => {
+    it('claiw is a native button element', () => {
       render(<App />)
       const claiw = screen.getByText('claiw')
-      expect(claiw).toHaveAttribute('role', 'button')
+      // Native buttons have implicit button role, no explicit role needed
+      expect(claiw.tagName.toLowerCase()).toBe('button')
     })
 
     it('button-like elements are properly identified', () => {

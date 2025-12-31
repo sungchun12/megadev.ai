@@ -98,13 +98,12 @@ describe('App', () => {
       vi.stubGlobal('open', mockWindowOpen)
     })
 
-    it('claiw link has correct styling', () => {
+    it('claiw button has correct class for styling', () => {
       render(<App />)
       const claiw = screen.getByText('claiw')
-      
-      expect(claiw).toHaveStyle({ color: '#00FEFF' })
-      expect(claiw).toHaveStyle({ cursor: 'pointer' })
-      expect(claiw).toHaveStyle({ fontWeight: 'bold' })
+
+      // Check button has the correct class (CSS handles actual styling)
+      expect(claiw).toHaveClass('claiw-button')
     })
 
     it('claiw link opens GitHub on click', async () => {
@@ -176,10 +175,11 @@ describe('App', () => {
       expect(claiw).toHaveAttribute('aria-label', 'Open claiw GitHub repository in new tab')
     })
 
-    it('claiw link has tabIndex for keyboard focus', () => {
+    it('claiw button is natively focusable', () => {
       render(<App />)
       const claiw = screen.getByText('claiw')
-      expect(claiw).toHaveAttribute('tabIndex', '0')
+      // Native button elements are focusable without tabIndex
+      expect(claiw.tagName.toLowerCase()).toBe('button')
     })
 
     it('main element uses semantic landmark', () => {

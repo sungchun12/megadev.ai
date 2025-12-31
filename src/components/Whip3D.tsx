@@ -112,6 +112,7 @@ function WhipSegment({
   // Store the idle position for returning
   const idlePosition = useRef({ x: 0, y: 0, z: 0 })
   const currentOffset = useRef({ x: 0, y: 0 })
+  const segmentVelocity = useRef({ x: 0, y: 0 }) // For spring physics
   
   // Reduce bevel segments on mobile for performance
   const bevelSegments = isMobileDevice() ? 1 : 2
@@ -184,25 +185,35 @@ function WhipSegment({
       const delayFactor = 1 - progress * 0.7 // Tip follows faster
       const targetOffsetX = ws.targetX * 2.5 * dragInfluence
       const targetOffsetY = ws.targetY * 2.5 * dragInfluence
-      
+
       // Add velocity-based overshoot for whip feel
       const velocityInfluence = dragInfluence * 0.5
       const overshootX = ws.velocity.x * velocityInfluence
       const overshootY = ws.velocity.y * velocityInfluence
-      
+
       currentOffset.current.x += ((targetOffsetX + overshootX) - currentOffset.current.x) * (0.15 - delayFactor * 0.1)
       currentOffset.current.y += ((targetOffsetY + overshootY) - currentOffset.current.y) * (0.15 - delayFactor * 0.1)
+
+      // Reset velocity for spring physics when dragging ends
+      segmentVelocity.current.x = (currentOffset.current.x - (segmentVelocity.current.x || 0)) * 0.5
+      segmentVelocity.current.y = (currentOffset.current.y - (segmentVelocity.current.y || 0)) * 0.5
     } else {
-      // Smoothly return to idle with elastic easing
-      const returnSpeed = 0.03 + progress * 0.02 // Tip returns slightly faster
-      const elasticity = Math.sin(ws.returnProgress * Math.PI * 2) * (1 - ws.returnProgress) * 0.3
-      
-      currentOffset.current.x += (0 - currentOffset.current.x) * returnSpeed
-      currentOffset.current.y += (0 - currentOffset.current.y) * returnSpeed
-      
-      // Add subtle bounce
-      currentOffset.current.x += elasticity * 0.1 * dragInfluence
-      currentOffset.current.y += elasticity * 0.1 * dragInfluence
+      // Spring physics for smooth, natural return
+      // Segments closer to tip have slightly different spring characteristics
+      const stiffness = 0.12 + progress * 0.03 // Tip is slightly stiffer
+      const damping = 0.82
+
+      // Apply spring force toward origin
+      const springForceX = -currentOffset.current.x * stiffness
+      const springForceY = -currentOffset.current.y * stiffness
+
+      // Apply damping to velocity
+      segmentVelocity.current.x = segmentVelocity.current.x * damping + springForceX
+      segmentVelocity.current.y = segmentVelocity.current.y * damping + springForceY
+
+      // Update position
+      currentOffset.current.x += segmentVelocity.current.x
+      currentOffset.current.y += segmentVelocity.current.y
     }
     
     // Final position
@@ -238,6 +249,7 @@ function WhipTip({ whipState, segmentCount }: { whipState: React.MutableRefObjec
   const meshRef = useRef<THREE.Mesh>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(createGlowMaterial())
   const currentOffset = useRef({ x: 0, y: 0 })
+  const tipVelocity = useRef({ x: 0, y: 0 }) // For spring physics
   
   // Reduce bevel segments on mobile
   const bevelSegments = isMobileDevice() ? 2 : 3
@@ -300,21 +312,33 @@ function WhipTip({ whipState, segmentCount }: { whipState: React.MutableRefObjec
     if (ws.isDragging) {
       const targetOffsetX = ws.targetX * 3.0 * dragInfluence
       const targetOffsetY = ws.targetY * 3.0 * dragInfluence
-      
+
       // More velocity influence at the tip for that crack effect
       const overshootX = ws.velocity.x * 0.8
       const overshootY = ws.velocity.y * 0.8
-      
+
       currentOffset.current.x += ((targetOffsetX + overshootX) - currentOffset.current.x) * 0.2
       currentOffset.current.y += ((targetOffsetY + overshootY) - currentOffset.current.y) * 0.2
+
+      // Track velocity for spring physics
+      tipVelocity.current.x = (currentOffset.current.x - (tipVelocity.current.x || 0)) * 0.5
+      tipVelocity.current.y = (currentOffset.current.y - (tipVelocity.current.y || 0)) * 0.5
     } else {
-      const returnSpeed = 0.04
-      const elasticity = Math.sin(ws.returnProgress * Math.PI * 3) * (1 - ws.returnProgress) * 0.4
-      
-      currentOffset.current.x += (0 - currentOffset.current.x) * returnSpeed
-      currentOffset.current.y += (0 - currentOffset.current.y) * returnSpeed
-      currentOffset.current.x += elasticity * 0.15
-      currentOffset.current.y += elasticity * 0.1
+      // Spring physics for smooth, natural return - tip is slightly snappier
+      const stiffness = 0.15
+      const damping = 0.80
+
+      // Apply spring force toward origin
+      const springForceX = -currentOffset.current.x * stiffness
+      const springForceY = -currentOffset.current.y * stiffness
+
+      // Apply damping to velocity
+      tipVelocity.current.x = tipVelocity.current.x * damping + springForceX
+      tipVelocity.current.y = tipVelocity.current.y * damping + springForceY
+
+      // Update position
+      currentOffset.current.x += tipVelocity.current.x
+      currentOffset.current.y += tipVelocity.current.y
     }
     
     const x = idleX + currentOffset.current.x
@@ -346,30 +370,43 @@ function Whip({ whipState, segmentCount }: { whipState: React.MutableRefObject<W
   const groupRef = useRef<THREE.Group>(null)
   const offsetGroupRef = useRef<THREE.Group>(null)
   const currentOffset = useRef({ x: 0, y: 0 })
-  
+  const offsetVelocity = useRef({ x: 0, y: 0 }) // For spring physics
+
   useFrame((state) => {
     if (!groupRef.current || !offsetGroupRef.current) return
     const time = state.clock.elapsedTime
     const ws = whipState.current
-    
+
     // Update return progress
     if (!ws.isDragging && ws.returnProgress < 1) {
       ws.returnProgress = Math.min(1, ws.returnProgress + 0.02)
     }
-    
+
     // Smoothly animate scene offset when dragging
     if (ws.isDragging) {
       currentOffset.current.x += (ws.sceneOffsetX - currentOffset.current.x) * 0.15
       currentOffset.current.y += (ws.sceneOffsetY - currentOffset.current.y) * 0.15
+      // Track velocity for spring
+      offsetVelocity.current.x = (ws.sceneOffsetX - currentOffset.current.x) * 0.1
+      offsetVelocity.current.y = (ws.sceneOffsetY - currentOffset.current.y) * 0.1
     } else {
-      // Return to center when not dragging
-      currentOffset.current.x += (0 - currentOffset.current.x) * 0.08
-      currentOffset.current.y += (0 - currentOffset.current.y) * 0.08
+      // Spring physics for return to center
+      const stiffness = 0.10
+      const damping = 0.85
+
+      const springForceX = -currentOffset.current.x * stiffness
+      const springForceY = -currentOffset.current.y * stiffness
+
+      offsetVelocity.current.x = offsetVelocity.current.x * damping + springForceX
+      offsetVelocity.current.y = offsetVelocity.current.y * damping + springForceY
+
+      currentOffset.current.x += offsetVelocity.current.x
+      currentOffset.current.y += offsetVelocity.current.y
     }
-    
+
     offsetGroupRef.current.position.x = currentOffset.current.x
     offsetGroupRef.current.position.y = currentOffset.current.y
-    
+
     // Gentle overall sway (reduced when dragging)
     const swayAmount = ws.isDragging ? 0.01 : 0.04
     groupRef.current.rotation.x = Math.sin(time * 0.25) * swayAmount
@@ -404,7 +441,8 @@ function GlowParticles({ whipState, particleCount }: { whipState: React.MutableR
   const groupRef = useRef<THREE.Group>(null)
   const particlesRef = useRef<THREE.Points>(null)
   const currentOffset = useRef({ x: 0, y: 0 })
-  
+  const particleVelocity = useRef({ x: 0, y: 0 }) // For spring physics
+
   const positions = useMemo(() => {
     const pos = new Float32Array(particleCount * 3)
     for (let i = 0; i < particleCount; i++) {
@@ -421,19 +459,31 @@ function GlowParticles({ whipState, particleCount }: { whipState: React.MutableR
     if (!particlesRef.current || !groupRef.current) return
     const time = state.clock.elapsedTime
     const ws = whipState.current
-    
-    // Match the whip's offset position
+
+    // Match the whip's offset position with spring physics
     if (ws.isDragging) {
       currentOffset.current.x += (ws.sceneOffsetX - currentOffset.current.x) * 0.15
       currentOffset.current.y += (ws.sceneOffsetY - currentOffset.current.y) * 0.15
+      particleVelocity.current.x = (ws.sceneOffsetX - currentOffset.current.x) * 0.1
+      particleVelocity.current.y = (ws.sceneOffsetY - currentOffset.current.y) * 0.1
     } else {
-      currentOffset.current.x += (0 - currentOffset.current.x) * 0.08
-      currentOffset.current.y += (0 - currentOffset.current.y) * 0.08
+      // Spring physics for particles (slightly softer than whip)
+      const stiffness = 0.08
+      const damping = 0.88
+
+      const springForceX = -currentOffset.current.x * stiffness
+      const springForceY = -currentOffset.current.y * stiffness
+
+      particleVelocity.current.x = particleVelocity.current.x * damping + springForceX
+      particleVelocity.current.y = particleVelocity.current.y * damping + springForceY
+
+      currentOffset.current.x += particleVelocity.current.x
+      currentOffset.current.y += particleVelocity.current.y
     }
-    
+
     groupRef.current.position.x = currentOffset.current.x
     groupRef.current.position.y = currentOffset.current.y
-    
+
     // Particles react to dragging
     const rotationSpeed = ws.isDragging ? 0.15 : 0.08
     particlesRef.current.rotation.z = time * rotationSpeed + ws.targetX * 0.3
@@ -936,9 +986,10 @@ export function Whip3D() {
     explosions: [],
     nextExplosionId: 0,
   })
-  
+
   const containerRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isReturning, setIsReturning] = useState(false) // Track return animation
   const [isHovering, setIsHovering] = useState(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
   const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
@@ -1021,6 +1072,13 @@ export function Whip3D() {
       whipState.current.isDragging = false
       whipState.current.returnProgress = 0
       setIsDragging(false)
+      setIsReturning(true)
+
+      // Delay container shrink until whip has mostly returned
+      // This prevents the "invisible sandbox resize" visual artifact
+      setTimeout(() => {
+        setIsReturning(false)
+      }, 500) // Wait for spring animation to settle
     }
     
     // Add global listeners
@@ -1072,10 +1130,13 @@ export function Whip3D() {
   // Show hint when hovering (desktop) or always on mobile, but not when dragging
   const showClickHint = (isHovering || isMobile) && !isDragging
   
+  // Keep container fullscreen during drag AND return animation
+  const isFullscreen = isDragging || isReturning
+
   return (
-    <div 
+    <div
       ref={containerRef}
-      className={`whip-3d-container ${isDragging ? 'whipping' : ''}`}
+      className={`whip-3d-container ${isFullscreen ? 'whipping' : ''}`}
       onPointerDown={handlePointerDown}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
