@@ -125,14 +125,17 @@ export function ShaderBackground() {
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
 
-    // Handle resize
+    // Handle resize - use 100vw/100vh to cover full viewport including scrollbar area
     const resize = () => {
       const maxDpr = isMobileDevice() ? 1.5 : 2
       const dpr = Math.min(window.devicePixelRatio || 1, maxDpr)
-      canvas.width = window.innerWidth * dpr
-      canvas.height = window.innerHeight * dpr
-      canvas.style.width = `${window.innerWidth}px`
-      canvas.style.height = `${window.innerHeight}px`
+      // Use documentElement dimensions to get full viewport
+      const width = document.documentElement.clientWidth
+      const height = window.innerHeight
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      canvas.style.width = '100vw'
+      canvas.style.height = '100vh'
       gl.viewport(0, 0, canvas.width, canvas.height)
     }
     resize()

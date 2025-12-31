@@ -25,3 +25,22 @@
   right: 0;
 }
 
+/* Source repo link */
+.coordinates-link {
+  pointer-events: auto;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.coordinates-link:hover,
+.coordinates-link:focus {
+  opacity: 1;
+  color: var(--color-accent-glow);
+}
+
+.coordinates-link:focus-visible {
+  outline: 1px solid var(--color-accent-glow);
+  outline-offset: 2px;
+}
+

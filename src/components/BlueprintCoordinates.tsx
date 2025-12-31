@@ -42,13 +42,19 @@ export function BlueprintCoordinates() {
   }, [throttledUpdate])
 
   return (
-    <div className="coordinates" aria-hidden="true">
-      <span className="coordinates-item coordinates-top-left">
+    <div className="coordinates">
+      <span className="coordinates-item coordinates-top-left" aria-hidden="true">
         x: {coords.x.toFixed(4)} y: {coords.y.toFixed(4)}
       </span>
-      <span className="coordinates-item coordinates-bottom-right">
+      <a
+        href="https://github.com/sungchun12/megadev.ai"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="coordinates-item coordinates-bottom-right coordinates-link"
+        aria-label="View megadev.ai source code on GitHub"
+      >
         megadev.ai v1.0.0
-      </span>
+      </a>
     </div>
   )
 }
