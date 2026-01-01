@@ -44,3 +44,22 @@
   outline-offset: 2px;
 }
 
+/* Responsive - hide coordinates on mobile to prevent overlap */
+@media (max-width: 768px) {
+  .coordinates-top-left {
+    display: none;
+  }
+
+  .coordinates-bottom-right {
+    font-size: 0.6rem;
+    padding: var(--spacing-sm);
+  }
+}
+
+/* Very small screens - hide source code link to prevent overlap with social icons */
+@media (max-width: 480px) {
+  .coordinates-bottom-right {
+    display: none;
+  }
+}
+

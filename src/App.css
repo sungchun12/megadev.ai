@@ -224,8 +224,78 @@
     display: none;
   }
 
+  /* Hide coming soon placeholders on mobile to prevent scroll indicator overlap */
+  .annotation-coming-soon {
+    display: none;
+  }
+
+  /* Make scroll indicator part of document flow on mobile/tablet */
   .scroll-indicator {
-    bottom: var(--spacing-lg);
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin: var(--spacing-lg) auto var(--spacing-md);
+    animation: bounce-mobile 2s infinite;
+  }
+}
+
+/* Tablet landscape and medium screens */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .scroll-indicator {
+    bottom: var(--spacing-md);
+  }
+}
+
+/* Hide coming soon items on shorter viewports to prevent scroll indicator overlap */
+@media (min-width: 769px) and (max-height: 750px) {
+  .annotation-coming-soon {
+    display: none;
+  }
+}
+
+/* Very short viewports with wider screens - make scroll indicator flow with content */
+@media (min-width: 769px) and (max-height: 600px) {
+  .scroll-indicator {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin: var(--spacing-md) auto;
+    animation: bounce-mobile 2s infinite;
+  }
+}
+
+/* Animation for mobile scroll indicator (no translateX needed) */
+@keyframes bounce-mobile {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Very small viewports height - ensure scroll indicator fits */
+@media (max-height: 600px) {
+  .scroll-indicator {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin: var(--spacing-md) auto;
+    animation: bounce-mobile 2s infinite;
+  }
+
+  .scroll-indicator-teaser {
+    font-size: 0.8rem;
+  }
+
+  .scroll-indicator-text {
+    font-size: 0.6rem;
   }
 }
 
