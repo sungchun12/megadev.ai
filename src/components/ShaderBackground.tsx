@@ -23,7 +23,7 @@ const fragmentShaderSource = `
     vec2 uv = v_uv;
 
     // Solid background color #1673FF
-    vec3 bgColor = vec3(0.0, 0.388, 0.851);
+    vec3 bgColor = vec3(0.086, 0.451, 1.0);
 
     // === DOT GRID OVERLAY ===
 
