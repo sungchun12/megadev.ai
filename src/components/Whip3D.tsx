@@ -1,8 +1,11 @@
 import { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
+import { EffectComposer } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Whip3D.css'
+import { FlutedGlassEffect } from './FlutedGlassEffect'
+import { useDistortionStateOptional } from './DistortionDial/useDistortionState'
 
 // Performance detection utilities
 const isMobileDevice = (): boolean => {
@@ -993,6 +996,10 @@ export function Whip3D() {
   const [isHovering, setIsHovering] = useState(false)
   const lastMousePos = useRef({ x: 0, y: 0 })
   const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
+
+  // Get distortion value for glass effect (optional - works outside provider too)
+  const distortionContext = useDistortionStateOptional()
+  const distortion = distortionContext?.distortion ?? 0
   
   // Get optimized counts on mount (stable values)
   const segmentCount = useMemo(() => getSegmentCount(), [])
@@ -1145,7 +1152,7 @@ export function Whip3D() {
       <Canvas
         camera={{ position: [0, 0, 4.5], fov: 50 }}
         dpr={dpr} // Capped DPR for performance
-        gl={{ 
+        gl={{
           antialias: !isMobileDevice(), // Disable antialiasing on mobile
           alpha: true,
           powerPreference: 'high-performance'
@@ -1153,11 +1160,17 @@ export function Whip3D() {
         style={{ background: 'transparent', touchAction: 'none' }}
       >
         <Suspense fallback={<LoadingFallback />}>
-          <Scene 
-            whipState={whipState} 
+          <Scene
+            whipState={whipState}
             segmentCount={segmentCount}
             particleCount={particleCount}
           />
+          {/* Glass distortion effect - only render when distortion > 0 */}
+          {distortion > 0 && (
+            <EffectComposer>
+              <FlutedGlassEffect distortion={distortion} />
+            </EffectComposer>
+          )}
         </Suspense>
       </Canvas>
       

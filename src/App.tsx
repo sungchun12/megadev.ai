@@ -4,10 +4,13 @@ import { CharacterDisplay } from './components/CharacterDisplay'
 import { Header } from './components/Header'
 import { Essay } from './components/Essay'
 import { SocialLinks } from './components/SocialLinks'
+import { DistortionProvider, DistortionDial } from './components/DistortionDial'
+import { DistortionOverlay } from './components/DistortionOverlay'
 import './App.css'
 
 function App() {
   return (
+    <DistortionProvider>
     <main className="app">
       {/* Hero Section - First Viewport */}
       <section className="hero-section">
@@ -74,7 +77,12 @@ function App() {
 
       {/* Social Links - Fixed Position */}
       <SocialLinks />
+
+      {/* Distortion Effect Controls */}
+      <DistortionOverlay />
+      <DistortionDial />
     </main>
+    </DistortionProvider>
   )
 }
 
