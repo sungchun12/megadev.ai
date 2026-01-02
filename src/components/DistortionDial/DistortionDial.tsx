@@ -99,10 +99,10 @@ export function DistortionDial() {
   // Don't render on mobile
   if (isMobile) return null
 
-  // Generate tick marks
+  // Generate tick marks (only show labels for 0.00 and 0.50, not 1.00)
   const ticks = Array.from({ length: TICK_COUNT }, (_, i) => {
     const value = i / (TICK_COUNT - 1)
-    const isMajor = i % 5 === 0 || i === TICK_COUNT - 1
+    const isMajor = i % 5 === 0 && i < TICK_COUNT - 1 // Exclude 1.00 label
     return { value, isMajor, label: value.toFixed(2) }
   }).reverse() // Reverse so 1.00 is at top
 
