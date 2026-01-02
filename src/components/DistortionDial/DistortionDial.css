@@ -36,14 +36,18 @@
 
 .dial-track {
   position: relative;
-  width: 60px;
-  height: 300px;
-  background: rgba(0, 71, 171, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  width: 48px;
+  height: 280px;
+  background: rgba(22, 115, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   overflow: hidden;
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .dial-track::before {
@@ -75,21 +79,21 @@
 }
 
 .tick-line {
-  width: 8px;
+  width: 6px;
   height: 1px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .dial-tick.major .tick-line {
-  width: 12px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 10px;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .tick-label {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-left: 4px;
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 3px;
   white-space: nowrap;
 }
 
@@ -98,21 +102,29 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 20px;
-  height: 8px;
-  background: var(--color-accent-glow);
-  border-radius: 2px;
+  height: 36px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(200, 220, 255, 0.8) 100%
+  );
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow:
-    0 0 10px rgba(0, 212, 255, 0.5),
-    0 0 20px rgba(0, 212, 255, 0.3);
-  transition: box-shadow 0.2s ease;
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 0 12px rgba(0, 212, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
   pointer-events: none;
   z-index: 2;
 }
 
 .distortion-dial.dragging .dial-thumb {
   box-shadow:
-    0 0 15px rgba(0, 212, 255, 0.7),
-    0 0 30px rgba(0, 212, 255, 0.5);
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(0, 212, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%) scale(1.05);
 }
 
 .dial-fill {
@@ -122,9 +134,11 @@
   width: 100%;
   background: linear-gradient(
     to top,
-    rgba(0, 212, 255, 0.15),
-    rgba(0, 212, 255, 0.05)
+    rgba(0, 212, 255, 0.25),
+    rgba(0, 212, 255, 0.1) 50%,
+    rgba(0, 212, 255, 0.02)
   );
+  border-radius: 0 0 12px 12px;
   pointer-events: none;
   z-index: 1;
 }

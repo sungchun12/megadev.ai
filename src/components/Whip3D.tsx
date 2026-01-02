@@ -1160,6 +1160,8 @@ export function Whip3D() {
         style={{ background: 'transparent', touchAction: 'none' }}
       >
         <Suspense fallback={<LoadingFallback />}>
+          {/* Add background color when distortion is active (EffectComposer needs solid bg) */}
+          {distortion > 0 && <color attach="background" args={['#1673FF']} />}
           <Scene
             whipState={whipState}
             segmentCount={segmentCount}

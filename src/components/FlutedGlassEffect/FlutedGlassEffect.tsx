@@ -4,10 +4,16 @@ import { BubblesGlassEffect } from './flutedGlassShader'
 
 interface FlutedGlassEffectProps {
   distortion?: number
+  lightPosition?: [number, number, number]
+  fill?: number
 }
 
 export const FlutedGlassEffect = forwardRef<BubblesGlassEffect, FlutedGlassEffectProps>(
-  function FlutedGlassEffect({ distortion = 0 }, ref) {
+  function FlutedGlassEffect({
+    distortion = 0,
+    lightPosition = [1.0, 0.0, 1.0],
+    fill = 1.0
+  }, ref) {
     const { size } = useThree()
 
     const effect = useMemo(() => new BubblesGlassEffect(), [])
@@ -16,6 +22,16 @@ export const FlutedGlassEffect = forwardRef<BubblesGlassEffect, FlutedGlassEffec
     useEffect(() => {
       effect.distortionValue = distortion
     }, [effect, distortion])
+
+    // Update light position
+    useEffect(() => {
+      effect.setLightPosition(lightPosition[0], lightPosition[1], lightPosition[2])
+    }, [effect, lightPosition])
+
+    // Update fill value
+    useEffect(() => {
+      effect.fillValue = fill
+    }, [effect, fill])
 
     // Update resolution on size change
     useEffect(() => {

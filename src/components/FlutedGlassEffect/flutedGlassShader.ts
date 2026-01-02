@@ -1,5 +1,5 @@
 import { Effect } from 'postprocessing'
-import { Uniform, Vector2, WebGLRenderer, WebGLRenderTarget } from 'three'
+import { Uniform, Vector2, Vector3, WebGLRenderer, WebGLRenderTarget } from 'three'
 
 const fragmentShader = /* glsl */ `
 precision highp float;
@@ -7,6 +7,8 @@ precision highp float;
 uniform float distortion;
 uniform vec2 resolution;
 uniform float time;
+uniform vec3 lightPosition;
+uniform float fill;
 
 // Hash function for pseudo-random values
 vec2 hash2(vec2 p) {
@@ -63,18 +65,34 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   // Apply distortion to UV coordinates
   vec2 distortedUV = uv + totalDisplacement;
 
+  // Clamp UV to prevent sampling outside bounds (fixes black border)
+  vec2 clampedUV = clamp(distortedUV, 0.001, 0.999);
+
   // Chromatic aberration for glass realism
   float aberration = distortion * 0.015;
 
-  vec4 colorR = texture2D(inputBuffer, distortedUV + vec2(aberration, 0.0));
-  vec4 colorG = texture2D(inputBuffer, distortedUV);
-  vec4 colorB = texture2D(inputBuffer, distortedUV - vec2(aberration, 0.0));
+  // Clamp all sample coordinates to prevent black edges
+  vec2 uvR = clamp(clampedUV + vec2(aberration, 0.0), 0.001, 0.999);
+  vec2 uvB = clamp(clampedUV - vec2(aberration, 0.0), 0.001, 0.999);
+
+  vec4 colorR = texture2D(inputBuffer, uvR);
+  vec4 colorG = texture2D(inputBuffer, clampedUV);
+  vec4 colorB = texture2D(inputBuffer, uvB);
 
   vec4 color = vec4(colorR.r, colorG.g, colorB.b, 1.0);
 
-  // Subtle specular highlights on bubble edges
-  float highlight = smoothstep(0.4, 0.0, length(totalDisplacement)) * distortion * 0.15;
-  color.rgb += vec3(highlight);
+  // Calculate normal from displacement for lighting
+  vec3 normal = normalize(vec3(totalDisplacement * 2.0, 1.0));
+
+  // Lighting calculation with lightPosition uniform
+  vec3 lightDir = normalize(lightPosition);
+  float diffuse = max(dot(normal, lightDir), 0.0);
+  float specular = pow(max(dot(reflect(-lightDir, normal), vec3(0.0, 0.0, 1.0)), 0.0), 32.0);
+
+  // Apply lighting
+  float ambient = 0.7;
+  color.rgb *= (ambient + diffuse * 0.3);
+  color.rgb += specular * distortion * 0.1;
 
   // Very subtle frosting effect at higher distortion
   if (distortion > 0.5) {
@@ -82,17 +100,20 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     color.rgb = mix(color.rgb, vec3(dot(color.rgb, vec3(0.299, 0.587, 0.114))), frost * 0.3);
   }
 
-  outputColor = color;
+  // Apply fill - only distort within fill area (0.0 = no effect, 1.0 = full effect)
+  outputColor = mix(inputColor, color, fill);
 }
 `
 
 export class BubblesGlassEffect extends Effect {
   constructor() {
     super('BubblesGlassEffect', fragmentShader, {
-      uniforms: new Map<string, Uniform<number | Vector2>>([
+      uniforms: new Map<string, Uniform<number | Vector2 | Vector3>>([
         ['distortion', new Uniform(0.0)],
         ['resolution', new Uniform(new Vector2(1, 1))],
         ['time', new Uniform(0.0)],
+        ['lightPosition', new Uniform(new Vector3(1.0, 0.0, 1.0))],
+        ['fill', new Uniform(1.0)],
       ]),
     })
   }
@@ -104,7 +125,7 @@ export class BubblesGlassEffect extends Effect {
   ) {
     const timeUniform = this.uniforms.get('time')
     if (timeUniform) {
-      timeUniform.value += deltaTime
+      (timeUniform.value as number) += deltaTime
     }
   }
 
@@ -117,7 +138,7 @@ export class BubblesGlassEffect extends Effect {
 
   get distortionValue(): number {
     const uniform = this.uniforms.get('distortion')
-    return uniform ? uniform.value : 0
+    return uniform ? (uniform.value as number) : 0
   }
 
   setResolution(width: number, height: number) {
@@ -125,5 +146,24 @@ export class BubblesGlassEffect extends Effect {
     if (uniform) {
       (uniform.value as Vector2).set(width, height)
     }
+  }
+
+  setLightPosition(x: number, y: number, z: number) {
+    const uniform = this.uniforms.get('lightPosition')
+    if (uniform) {
+      (uniform.value as Vector3).set(x, y, z)
+    }
+  }
+
+  set fillValue(value: number) {
+    const uniform = this.uniforms.get('fill')
+    if (uniform) {
+      uniform.value = value
+    }
+  }
+
+  get fillValue(): number {
+    const uniform = this.uniforms.get('fill')
+    return uniform ? (uniform.value as number) : 1.0
   }
 }
