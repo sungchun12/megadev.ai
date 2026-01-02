@@ -1161,8 +1161,8 @@ export function Whip3D() {
       >
         <Suspense fallback={<LoadingFallback />}>
           {/* Add background color when distortion is active (EffectComposer needs solid bg) */}
-          {/* Match --color-bg-primary from variables.css for seamless blending */}
-          {distortion > 0 && <color attach="background" args={['#0047AB']} />}
+          {/* Match ShaderBackground color #1673FF for seamless blending */}
+          {distortion > 0 && <color attach="background" args={['#1673FF']} />}
           <Scene
             whipState={whipState}
             segmentCount={segmentCount}
