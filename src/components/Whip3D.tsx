@@ -1161,8 +1161,8 @@ export function Whip3D() {
       >
         <Suspense fallback={<LoadingFallback />}>
           {/* Set background when distortion is active - EffectComposer needs solid bg */}
-          {/* ShaderBackground uses vec3(0.086, 0.451, 1.0) = #1673FF */}
-          {distortion > 0 && <color attach="background" args={['#1673FF']} />}
+          {/* Match ShaderBackground color */}
+          {distortion > 0 && <color attach="background" args={['#1672FF']} />}
           <Scene
             whipState={whipState}
             segmentCount={segmentCount}
