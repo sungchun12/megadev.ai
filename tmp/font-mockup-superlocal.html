@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superlocal Font Style - megadev.ai</title>
+
+  <!-- Load exact fonts from Superlocal (RST Reactor from Framer CDN) -->
+  <style>
+    @font-face {
+      font-family: 'RST Reactor';
+      src: url('https://framerusercontent.com/assets/s675wBE7OJRqctziaBroxs1WfM.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'RST Reactor';
+      src: url('https://framerusercontent.com/assets/Ip0POd3fg9pds5MKMqINtlpuM.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+
+  <!-- Inter from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #4169E1;
+      color: #fff;
+      padding: 60px 40px;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .header h1 {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .card-label {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.4;
+    }
+
+    .logo {
+      font-size: 72px;
+      line-height: 1;
+      margin-bottom: 16px;
+      color: #FFF8E7;
+    }
+
+    .logo .rst {
+      font-family: 'RST Reactor', serif;
+      font-weight: 400;
+    }
+
+    .logo .rst-medium {
+      font-family: 'RST Reactor', serif;
+      font-weight: 500;
+    }
+
+    .logo .inter {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+    }
+
+    .logo .dot {
+      color: #00D4FF;
+    }
+
+    .tagline {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.7;
+      letter-spacing: 0.5px;
+      margin-bottom: 30px;
+    }
+
+    .description {
+      font-size: 12px;
+      opacity: 0.4;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .recommended {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: #00D4FF;
+      color: #1a1a2e;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .comparison .card {
+      padding: 40px 30px;
+    }
+
+    .comparison .logo {
+      font-size: 48px;
+    }
+
+    .small-label {
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 20px;
+    }
+
+    /* Reference: Original Superlocal style */
+    .superlocal-ref {
+      margin-top: 60px;
+      padding: 40px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .superlocal-ref .logo {
+      font-family: 'RST Reactor', serif;
+      font-weight: 400;
+      font-size: 56px;
+      color: #FFF8E7;
+    }
+
+    .superlocal-ref p {
+      font-size: 11px;
+      opacity: 0.4;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Using Superlocal's Exact Fonts</h1>
+    <p>RST Reactor + Inter applied to megadev.ai</p>
+  </div>
+
+  <div class="grid">
+    <!-- Option 1: mega (RST Regular) + dev (Inter) -->
+    <div class="card">
+      <div class="card-label">Option A</div>
+      <div class="recommended">CLOSEST TO SUPERLOCAL</div>
+      <div class="logo">
+        <span class="rst">mega</span><span class="inter">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="description">
+        RST Reactor Regular for "mega" + Inter Semi-Bold for "dev"<br>
+        Mirrors Superlocal's serif/sans split exactly
+      </div>
+    </div>
+
+    <!-- Option 2: Full RST Reactor -->
+    <div class="card">
+      <div class="card-label">Option B</div>
+      <div class="logo">
+        <span class="rst">megadev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="description">
+        Full RST Reactor Regular<br>
+        Unified look, strong personality
+      </div>
+    </div>
+
+    <!-- Option 3: mega (RST Medium) + dev (Inter) -->
+    <div class="card">
+      <div class="card-label">Option C</div>
+      <div class="logo">
+        <span class="rst-medium">mega</span><span class="inter">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="description">
+        RST Reactor Medium for "mega" + Inter Semi-Bold for "dev"<br>
+        Bolder serif portion
+      </div>
+    </div>
+  </div>
+
+  <div class="comparison">
+    <!-- All caps versions -->
+    <div class="card">
+      <div class="card-label">Uppercase A</div>
+      <div class="logo">
+        <span class="rst">MEGA</span><span class="inter">DEV</span><span class="dot">.AI</span>
+      </div>
+      <div class="small-label">RST Reactor + Inter (caps)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Uppercase B</div>
+      <div class="logo">
+        <span class="rst">MEGADEV</span><span class="dot">.AI</span>
+      </div>
+      <div class="small-label">Full RST Reactor (caps)</div>
+    </div>
+  </div>
+
+  <!-- Reference -->
+  <div class="superlocal-ref">
+    <div class="logo">superlocal</div>
+    <p>Reference: Original Superlocal logo in RST Reactor</p>
+  </div>
+</body>
+</html>

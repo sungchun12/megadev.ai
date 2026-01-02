@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dual-Font Logo Mockups - megadev.ai</title>
+
+  <!-- Google Fonts - Serifs + Sans-serifs -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Serif+Display&family=Libre+Baskerville:wght@400;700&family=Cormorant:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Crimson+Pro:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700&family=DM+Sans:wght@400;500;700&family=Outfit:wght@400;500;700&family=Sora:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #4169E1;
+      color: #fff;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .card-label {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.5;
+    }
+
+    .logo {
+      font-size: 64px;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 12px;
+      color: #FFF8E7;
+    }
+
+    .logo .serif {
+      /* Serif portion */
+    }
+
+    .logo .sans {
+      /* Sans portion */
+    }
+
+    .logo .dot {
+      color: #00D4FF;
+    }
+
+    .tagline {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      opacity: 0.7;
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+
+    .fonts-used {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      opacity: 0.4;
+      letter-spacing: 0.5px;
+    }
+
+    .fonts-used span {
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* Combo 1: Playfair + Space Grotesk */
+    .combo-1 .serif { font-family: 'Playfair Display', serif; font-weight: 600; }
+    .combo-1 .sans { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
+
+    /* Combo 2: Libre Baskerville + Inter */
+    .combo-2 .serif { font-family: 'Libre Baskerville', serif; font-weight: 700; }
+    .combo-2 .sans { font-family: 'Inter', sans-serif; font-weight: 600; }
+
+    /* Combo 3: DM Serif Display + DM Sans */
+    .combo-3 .serif { font-family: 'DM Serif Display', serif; }
+    .combo-3 .sans { font-family: 'DM Sans', sans-serif; font-weight: 700; }
+
+    /* Combo 4: Cormorant + Plus Jakarta Sans */
+    .combo-4 .serif { font-family: 'Cormorant', serif; font-weight: 600; }
+    .combo-4 .sans { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+
+    /* Combo 5: Lora + Outfit */
+    .combo-5 .serif { font-family: 'Lora', serif; font-weight: 600; }
+    .combo-5 .sans { font-family: 'Outfit', sans-serif; font-weight: 500; }
+
+    /* Combo 6: Source Serif 4 + Sora */
+    .combo-6 .serif { font-family: 'Source Serif 4', serif; font-weight: 600; }
+    .combo-6 .sans { font-family: 'Sora', sans-serif; font-weight: 500; }
+
+    /* Combo 7: Crimson Pro + Space Grotesk */
+    .combo-7 .serif { font-family: 'Crimson Pro', serif; font-weight: 600; }
+    .combo-7 .sans { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
+
+    /* Combo 8: Playfair + Inter */
+    .combo-8 .serif { font-family: 'Playfair Display', serif; font-weight: 500; }
+    .combo-8 .sans { font-family: 'Inter', sans-serif; font-weight: 600; }
+
+    .recommended {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #00D4FF;
+      color: #1a1a2e;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .section-title {
+      grid-column: 1 / -1;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin: 20px 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Dual-Font Logo Concept: Serif + Sans-Serif</h1>
+
+  <div class="grid">
+    <div class="section-title">Classic Serif Pairings</div>
+
+    <!-- Combo 1 -->
+    <div class="card combo-1">
+      <div class="card-label">01</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Playfair Display + Space Grotesk</span>
+      </div>
+    </div>
+
+    <!-- Combo 2 -->
+    <div class="card combo-2">
+      <div class="card-label">02</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Libre Baskerville + Inter</span>
+      </div>
+    </div>
+
+    <!-- Combo 3 -->
+    <div class="card combo-3">
+      <div class="card-label">03</div>
+      <div class="recommended">TOP PICK</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>DM Serif Display + DM Sans</span>
+      </div>
+    </div>
+
+    <!-- Combo 4 -->
+    <div class="card combo-4">
+      <div class="card-label">04</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Cormorant + Plus Jakarta Sans</span>
+      </div>
+    </div>
+
+    <div class="section-title">Modern Serif Pairings</div>
+
+    <!-- Combo 5 -->
+    <div class="card combo-5">
+      <div class="card-label">05</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Lora + Outfit</span>
+      </div>
+    </div>
+
+    <!-- Combo 6 -->
+    <div class="card combo-6">
+      <div class="card-label">06</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Source Serif 4 + Sora</span>
+      </div>
+    </div>
+
+    <!-- Combo 7 -->
+    <div class="card combo-7">
+      <div class="card-label">07</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Crimson Pro + Space Grotesk</span>
+      </div>
+    </div>
+
+    <!-- Combo 8 -->
+    <div class="card combo-8">
+      <div class="card-label">08</div>
+      <div class="logo">
+        <span class="serif">mega</span><span class="sans">dev</span><span class="dot">.ai</span>
+      </div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="fonts-used">
+        <span>Playfair Display + Inter</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

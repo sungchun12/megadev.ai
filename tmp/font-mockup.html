@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Font Stack Comparison - megadev.ai</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;700&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;500;700&family=Source+Sans+3:wght@400;500;700&family=IBM+Plex+Mono:wght@400;700&family=Sora:wght@400;500;700&family=Nunito+Sans:wght@400;500;700&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0047AB;
+      color: #fff;
+      padding: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+      position: relative;
+    }
+
+    .card-label {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: #00D4FF;
+      color: #0047AB;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 4px;
+    }
+
+    .stack-name {
+      font-size: 12px;
+      opacity: 0.6;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .display-sample {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      color: #00D4FF;
+    }
+
+    .tagline {
+      font-size: 18px;
+      font-weight: 500;
+      opacity: 0.9;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .body-sample {
+      font-size: 15px;
+      line-height: 1.7;
+      opacity: 0.85;
+      margin-bottom: 20px;
+    }
+
+    .code-sample {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #00D4FF;
+    }
+
+    /* Stack A: Space Grotesk + Inter + Space Mono */
+    .stack-a .display-sample { font-family: 'Space Grotesk', sans-serif; }
+    .stack-a .tagline { font-family: 'Space Grotesk', sans-serif; font-weight: 400; }
+    .stack-a .body-sample { font-family: 'Inter', sans-serif; }
+    .stack-a .code-sample { font-family: 'Space Mono', monospace; }
+    .stack-a .stack-name { font-family: 'Space Mono', monospace; }
+
+    /* Stack B: Plus Jakarta Sans + DM Sans + JetBrains Mono */
+    .stack-b .display-sample { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .stack-b .tagline { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 400; }
+    .stack-b .body-sample { font-family: 'DM Sans', sans-serif; }
+    .stack-b .code-sample { font-family: 'JetBrains Mono', monospace; }
+    .stack-b .stack-name { font-family: 'JetBrains Mono', monospace; }
+
+    /* Stack C: Outfit + Source Sans 3 + IBM Plex Mono */
+    .stack-c .display-sample { font-family: 'Outfit', sans-serif; }
+    .stack-c .tagline { font-family: 'Outfit', sans-serif; font-weight: 400; }
+    .stack-c .body-sample { font-family: 'Source Sans 3', sans-serif; }
+    .stack-c .code-sample { font-family: 'IBM Plex Mono', monospace; }
+    .stack-c .stack-name { font-family: 'IBM Plex Mono', monospace; }
+
+    /* Stack D: Sora + Nunito Sans + Fira Code */
+    .stack-d .display-sample { font-family: 'Sora', sans-serif; }
+    .stack-d .tagline { font-family: 'Sora', sans-serif; font-weight: 400; }
+    .stack-d .body-sample { font-family: 'Nunito Sans', sans-serif; }
+    .stack-d .code-sample { font-family: 'Fira Code', monospace; }
+    .stack-d .stack-name { font-family: 'Fira Code', monospace; }
+
+    .recommendation {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #00D4FF;
+      color: #0047AB;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <!-- Stack A -->
+    <div class="card stack-a">
+      <div class="card-label">Hypothesis A</div>
+      <div class="recommendation">RECOMMENDED</div>
+      <div class="stack-name">Space Grotesk + Inter + Space Mono</div>
+      <div class="display-sample">MEGADEV.AI</div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="body-sample">
+        I recently bought the domain above and want to research in the open what it means to be a megadev. It's a silly name for a serious premise: a person with hyper-leverage.
+      </div>
+      <div class="code-sample">
+        const claiw = await import('claiw');<br>
+        claiw.run({ mode: 'mega' });
+      </div>
+    </div>
+
+    <!-- Stack B -->
+    <div class="card stack-b">
+      <div class="card-label">Hypothesis B</div>
+      <div class="stack-name">Plus Jakarta Sans + DM Sans + JetBrains Mono</div>
+      <div class="display-sample">MEGADEV.AI</div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="body-sample">
+        I recently bought the domain above and want to research in the open what it means to be a megadev. It's a silly name for a serious premise: a person with hyper-leverage.
+      </div>
+      <div class="code-sample">
+        const claiw = await import('claiw');<br>
+        claiw.run({ mode: 'mega' });
+      </div>
+    </div>
+
+    <!-- Stack C -->
+    <div class="card stack-c">
+      <div class="card-label">Hypothesis C</div>
+      <div class="stack-name">Outfit + Source Sans 3 + IBM Plex Mono</div>
+      <div class="display-sample">MEGADEV.AI</div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="body-sample">
+        I recently bought the domain above and want to research in the open what it means to be a megadev. It's a silly name for a serious premise: a person with hyper-leverage.
+      </div>
+      <div class="code-sample">
+        const claiw = await import('claiw');<br>
+        claiw.run({ mode: 'mega' });
+      </div>
+    </div>
+
+    <!-- Stack D -->
+    <div class="card stack-d">
+      <div class="card-label">Hypothesis D</div>
+      <div class="stack-name">Sora + Nunito Sans + Fira Code</div>
+      <div class="display-sample">MEGADEV.AI</div>
+      <div class="tagline">//hyper-leverage tools & skills//</div>
+      <div class="body-sample">
+        I recently bought the domain above and want to research in the open what it means to be a megadev. It's a silly name for a serious premise: a person with hyper-leverage.
+      </div>
+      <div class="code-sample">
+        const claiw = await import('claiw');<br>
+        claiw.run({ mode: 'mega' });
+      </div>
+    </div>
+  </div>
+</body>
+</html>
