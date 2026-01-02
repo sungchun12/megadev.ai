@@ -1157,9 +1157,13 @@ export function Whip3D() {
           alpha: true,
           powerPreference: 'high-performance'
         }}
+        flat // Disable color management for exact color matching with ShaderBackground
         style={{ background: 'transparent', touchAction: 'none' }}
       >
         <Suspense fallback={<LoadingFallback />}>
+          {/* Set background when distortion is active - EffectComposer needs solid bg */}
+          {/* Use exact RGB values from ShaderBackground: vec3(0.086, 0.451, 1.0) */}
+          {distortion > 0 && <color attach="background" args={[0.086, 0.451, 1.0]} />}
           <Scene
             whipState={whipState}
             segmentCount={segmentCount}
