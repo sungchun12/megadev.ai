@@ -6,7 +6,7 @@ export function ShaderBackground() {
     <Shader className="shader-background" colorSpace="srgb">
       <SolidColor color="#1573FF" />
       <DotGrid color="#b3ccff" density={75} dotSize={0.18} opacity={0.3} />
-      <GridDistortion />
+      <GridDistortion intensity={2.8} />
     </Shader>
   )
 }
