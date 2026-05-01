@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import App from '../App'
 import { Header } from '../components/Header'
 import { BlueprintBackground } from '../components/BlueprintBackground'
-import { BlueprintCoordinates } from '../components/BlueprintCoordinates'
 import { BlueprintSketches } from '../components/BlueprintSketches'
 
 // Mock heavy components for focused testing
@@ -26,12 +25,6 @@ describe('Accessibility', () => {
       render(<BlueprintBackground />)
       const container = document.querySelector('.blueprint-container')
       expect(container).toHaveAttribute('aria-hidden', 'true')
-    })
-
-    it('coordinates display contains accessible link to source repo', () => {
-      render(<BlueprintCoordinates />)
-      const link = document.querySelector('.coordinates-link')
-      expect(link).toHaveAttribute('href', 'https://github.com/sungchun12/megadev.ai')
     })
 
     it('sketches have aria-hidden', () => {

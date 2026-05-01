@@ -1,11 +1,8 @@
 import { useRef, useMemo, Suspense, useState, useCallback, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
-import { EffectComposer } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Whip3D.css'
-import { FlutedGlassEffect } from './FlutedGlassEffect'
-import { useDistortionStateOptional } from './DistortionDial/useDistortionState'
 
 // Performance detection utilities
 const isMobileDevice = (): boolean => {
@@ -951,101 +948,14 @@ function LoadingFallback() {
   )
 }
 
-// Blueprint background plane for distortion effect
-// Replicates the ShaderBackground dot grid pattern inside the 3D scene
-function BlueprintBackground3D() {
-  const { size, camera } = useThree()
-  const materialRef = useRef<THREE.ShaderMaterial>(null)
-
-  // Create shader material that matches ShaderBackground
-  const shaderMaterial = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: {
-      u_resolution: { value: new THREE.Vector2(size.width, size.height) },
-    },
-    vertexShader: `
-      varying vec2 v_uv;
-      void main() {
-        v_uv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      precision highp float;
-      varying vec2 v_uv;
-      uniform vec2 u_resolution;
-
-      void main() {
-        vec2 uv = v_uv;
-
-        // Solid background color #1673FF (matches ShaderBackground)
-        vec3 bgColor = vec3(0.086, 0.451, 1.0);
-
-        // === DOT GRID OVERLAY ===
-
-        // Grid parameters (same as ShaderBackground)
-        float gridSize = 25.0;
-        vec2 gridUV = uv * vec2(u_resolution.x / gridSize, u_resolution.y / gridSize);
-        vec2 gridCell = fract(gridUV);
-
-        // Distance from center of each cell
-        float distToCenter = length(gridCell - 0.5);
-
-        // Create small dots
-        float dotRadius = 0.08;
-        float dot = 1.0 - smoothstep(dotRadius - 0.02, dotRadius, distToCenter);
-
-        // Dot color - subtle white/light blue
-        vec3 dotColor = vec3(0.7, 0.8, 1.0);
-        float dotOpacity = 0.3;
-
-        // Combine background with dots
-        vec3 finalColor = mix(bgColor, dotColor, dot * dotOpacity);
-
-        // Convert sRGB to linear - Three.js will encode back to sRGB
-        vec3 linearColor = pow(finalColor, vec3(2.2));
-        gl_FragColor = vec4(linearColor, 1.0);
-      }
-    `,
-    depthWrite: false,
-    toneMapped: false, // Disable tone mapping to match raw WebGL ShaderBackground
-  }), [size.width, size.height])
-
-  // Update resolution on resize
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.u_resolution.value.set(size.width, size.height)
-    }
-  })
-
-  // Calculate plane size to cover entire viewport at z=-5
-  // Camera is at z=4.5 with fov=50, plane at z=-5 is 9.5 units away
-  const planeZ = -5
-  const distance = camera.position.z - planeZ
-  const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-  const planeHeight = 2 * Math.tan(fov / 2) * distance * 1.5 // 1.5x for padding
-  const aspect = size.width / size.height
-  const planeWidth = planeHeight * aspect
-
-  return (
-    <mesh position={[0, 0, planeZ]} renderOrder={-1}>
-      <planeGeometry args={[planeWidth, planeHeight]} />
-      <primitive object={shaderMaterial} ref={materialRef} attach="material" />
-    </mesh>
-  )
-}
-
 // Scene setup with optimized counts
-function Scene({ whipState, segmentCount, particleCount, distortion }: {
+function Scene({ whipState, segmentCount, particleCount }: {
   whipState: React.MutableRefObject<WhipState>
   segmentCount: number
   particleCount: number
-  distortion: number
 }) {
   return (
     <>
-      {/* Blueprint background for distortion effect - renders the dot grid inside 3D scene */}
-      {distortion > 0 && <BlueprintBackground3D />}
-
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
       <pointLight position={[-3, 2, 2]} intensity={1.5} color="#00D4FF" distance={10} />
@@ -1084,10 +994,6 @@ export function Whip3D() {
   const lastMousePos = useRef({ x: 0, y: 0 })
   const originalCenter = useRef({ x: 0, y: 0 }) // Store original center when drag starts
 
-  // Get distortion value for glass effect (optional - works outside provider too)
-  const distortionContext = useDistortionStateOptional()
-  const distortion = distortionContext?.distortion ?? 0
-  
   // Get optimized counts on mount (stable values)
   const segmentCount = useMemo(() => getSegmentCount(), [])
   const particleCount = useMemo(() => getParticleCount(), [])
@@ -1251,14 +1157,7 @@ export function Whip3D() {
             whipState={whipState}
             segmentCount={segmentCount}
             particleCount={particleCount}
-            distortion={distortion}
           />
-          {/* Glass distortion effect - only render when distortion > 0 */}
-          {distortion > 0 && (
-            <EffectComposer>
-              <FlutedGlassEffect distortion={distortion} />
-            </EffectComposer>
-          )}
         </Suspense>
       </Canvas>
       
