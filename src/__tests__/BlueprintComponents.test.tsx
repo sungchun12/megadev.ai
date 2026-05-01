@@ -1,64 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { BlueprintBackground } from '../components/BlueprintBackground'
 import { BlueprintSketches } from '../components/BlueprintSketches'
 import { ShaderBackground } from '../components/ShaderBackground'
 
-// Mock WebGL context for ShaderBackground
-const mockWebGLContext = {
-  createShader: vi.fn(() => ({})),
-  shaderSource: vi.fn(),
-  compileShader: vi.fn(),
-  getShaderParameter: vi.fn(() => true),
-  getShaderInfoLog: vi.fn(() => ''),
-  createProgram: vi.fn(() => ({})),
-  attachShader: vi.fn(),
-  linkProgram: vi.fn(),
-  getProgramParameter: vi.fn(() => true),
-  getProgramInfoLog: vi.fn(() => ''),
-  createBuffer: vi.fn(() => ({})),
-  bindBuffer: vi.fn(),
-  bufferData: vi.fn(),
-  getAttribLocation: vi.fn(() => 0),
-  getUniformLocation: vi.fn(() => ({})),
-  viewport: vi.fn(),
-  clearColor: vi.fn(),
-  clear: vi.fn(),
-  useProgram: vi.fn(),
-  enable: vi.fn(),
-  blendFunc: vi.fn(),
-  uniform2f: vi.fn(),
-  uniform1f: vi.fn(),
-  enableVertexAttribArray: vi.fn(),
-  vertexAttribPointer: vi.fn(),
-  drawArrays: vi.fn(),
-  deleteProgram: vi.fn(),
-  deleteShader: vi.fn(),
-  deleteBuffer: vi.fn(),
-  getExtension: vi.fn(),
-  VERTEX_SHADER: 35633,
-  FRAGMENT_SHADER: 35632,
-  COMPILE_STATUS: 35713,
-  LINK_STATUS: 35714,
-  ARRAY_BUFFER: 34962,
-  STATIC_DRAW: 35044,
-  FLOAT: 5126,
-  TRIANGLES: 4,
-  COLOR_BUFFER_BIT: 16384,
-  BLEND: 3042,
-  SRC_ALPHA: 770,
-  ONE_MINUS_SRC_ALPHA: 771,
-}
-
-beforeEach(() => {
-  // Mock canvas getContext for WebGL
-  HTMLCanvasElement.prototype.getContext = vi.fn((type: string) => {
-    if (type === 'webgl') {
-      return mockWebGLContext as unknown as WebGLRenderingContext
-    }
-    return null
-  }) as typeof HTMLCanvasElement.prototype.getContext
-})
+// Mock shaders/react — the real package needs WebGL + IntersectionObserver and
+// doesn't add value to assertions about ShaderBackground's wrapper structure.
+vi.mock('shaders/react', () => ({
+  Shader: ({ children, className }: { children?: ReactNode; className?: string }) => (
+    <div data-testid="shader-root" className={className} aria-hidden="true">
+      {children}
+    </div>
+  ),
+  SolidColor: ({ color }: { color: string }) => (
+    <div data-testid="shader-solid-color" data-color={color} />
+  ),
+  DotGrid: (props: Record<string, unknown>) => (
+    <div data-testid="shader-dot-grid" data-density={props.density as number} />
+  ),
+  GridDistortion: (props: Record<string, unknown>) => (
+    <div data-testid="shader-grid-distortion" data-intensity={props.intensity as number} />
+  ),
+}))
 
 describe('BlueprintBackground', () => {
   it('renders without crashing', () => {
@@ -135,34 +99,22 @@ describe('ShaderBackground', () => {
     expect(container).toBeInTheDocument()
   })
 
-  it('renders canvas element', () => {
-    render(<ShaderBackground />)
-    const canvas = document.querySelector('canvas')
-    expect(canvas).toBeInTheDocument()
+  it('renders the shader root with the shader-background class', () => {
+    const { getByTestId } = render(<ShaderBackground />)
+    const root = getByTestId('shader-root')
+    expect(root).toHaveClass('shader-background')
   })
 
-  it('has shader-background class', () => {
-    render(<ShaderBackground />)
-    const canvas = document.querySelector('.shader-background')
-    expect(canvas).toBeInTheDocument()
+  it('layers a SolidColor base, DotGrid, and GridDistortion', () => {
+    const { getByTestId } = render(<ShaderBackground />)
+    expect(getByTestId('shader-solid-color')).toHaveAttribute('data-color', '#1573FF')
+    expect(getByTestId('shader-dot-grid')).toHaveAttribute('data-density', '75')
+    expect(getByTestId('shader-grid-distortion')).toHaveAttribute('data-intensity', '2.8')
   })
 
-  it('has aria-hidden for decorative canvas', () => {
-    render(<ShaderBackground />)
-    const canvas = document.querySelector('canvas')
-    expect(canvas).toHaveAttribute('aria-hidden', 'true')
-  })
-
-  it('initializes WebGL context', () => {
-    render(<ShaderBackground />)
-    expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith(
-      'webgl',
-      expect.objectContaining({
-        alpha: false,
-        antialias: false,
-        powerPreference: 'low-power',
-      })
-    )
+  it('hides the decorative shader from assistive tech', () => {
+    const { getByTestId } = render(<ShaderBackground />)
+    expect(getByTestId('shader-root')).toHaveAttribute('aria-hidden', 'true')
   })
 })
 
