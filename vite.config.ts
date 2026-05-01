@@ -70,6 +70,5 @@ export default defineConfig({
   // Optimize dependencies
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ['three', '@react-three/fiber', '@react-three/drei'],
   },
 })
