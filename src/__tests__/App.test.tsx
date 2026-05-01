@@ -4,10 +4,6 @@ import userEvent from '@testing-library/user-event'
 import App from '../App'
 
 // Mock all heavy components to focus on App integration
-vi.mock('../components/BlueprintCoordinates', () => ({
-  BlueprintCoordinates: () => <div data-testid="blueprint-coordinates" />,
-}))
-
 vi.mock('../components/ShaderBackground', () => ({
   ShaderBackground: () => <div data-testid="shader-background" />,
 }))
@@ -44,7 +40,6 @@ describe('App', () => {
       render(<App />)
 
       expect(screen.getByTestId('shader-background')).toBeInTheDocument()
-      expect(screen.getByTestId('blueprint-coordinates')).toBeInTheDocument()
       expect(screen.getByTestId('header')).toBeInTheDocument()
       expect(screen.getByTestId('character-display')).toBeInTheDocument()
       expect(screen.getByTestId('essay')).toBeInTheDocument()

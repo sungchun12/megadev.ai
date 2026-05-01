@@ -1,4 +1,3 @@
-import { BlueprintCoordinates } from './components/BlueprintCoordinates'
 import { ShaderBackground } from './components/ShaderBackground'
 import { CharacterDisplay } from './components/CharacterDisplay'
 import { Header } from './components/Header'
@@ -12,7 +11,6 @@ function App() {
       {/* Hero Section - First Viewport */}
       <section className="hero-section">
         <ShaderBackground />
-        <BlueprintCoordinates />
 
         <div className="app-content">
           <Header />

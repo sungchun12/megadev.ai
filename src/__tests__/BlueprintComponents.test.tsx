@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { BlueprintBackground } from '../components/BlueprintBackground'
-import { BlueprintCoordinates } from '../components/BlueprintCoordinates'
 import { BlueprintSketches } from '../components/BlueprintSketches'
 import { ShaderBackground } from '../components/ShaderBackground'
 
@@ -89,46 +88,6 @@ describe('BlueprintBackground', () => {
     render(<BlueprintBackground />)
     const plane = document.querySelector('.blueprint-plane')
     expect(plane).toBeInTheDocument()
-  })
-})
-
-describe('BlueprintCoordinates', () => {
-  it('renders without crashing', () => {
-    const { container } = render(<BlueprintCoordinates />)
-    expect(container).toBeInTheDocument()
-  })
-
-  it('has coordinates container', () => {
-    render(<BlueprintCoordinates />)
-    const coords = document.querySelector('.coordinates')
-    expect(coords).toBeInTheDocument()
-  })
-
-  it('displays initial coordinates', () => {
-    render(<BlueprintCoordinates />)
-    expect(screen.getByText(/x:/)).toBeInTheDocument()
-    expect(screen.getByText(/y:/)).toBeInTheDocument()
-  })
-
-  it('displays link to source code', () => {
-    render(<BlueprintCoordinates />)
-    expect(screen.getByText('megadev.ai source code')).toBeInTheDocument()
-  })
-
-  it('has accessible link to source repo', () => {
-    render(<BlueprintCoordinates />)
-    const link = document.querySelector('.coordinates-link')
-    expect(link).toHaveAttribute('href', 'https://github.com/sungchun12/megadev.ai')
-    expect(link).toHaveAccessibleName('View megadev.ai source code on GitHub')
-  })
-
-  it('has top-left and bottom-right coordinate items', () => {
-    render(<BlueprintCoordinates />)
-    const topLeft = document.querySelector('.coordinates-top-left')
-    const bottomRight = document.querySelector('.coordinates-bottom-right')
-    
-    expect(topLeft).toBeInTheDocument()
-    expect(bottomRight).toBeInTheDocument()
   })
 })
 
